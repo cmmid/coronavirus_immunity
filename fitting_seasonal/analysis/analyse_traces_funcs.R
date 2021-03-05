@@ -94,10 +94,10 @@ plot_rbinom <- function(samples,
     init_theta <- c()
     init_theta["waning_day"] <- params_in["waning_duration"]
     init_theta["seasonal_R0"] <- params_in["seasonal_R0"]
-    init_theta["easonal_reported_1"] <- params_in["reporting_rate_1"]
-    init_theta["seasonal_reported_2"] <- params_in["reporting_rate_2"]
-    init_theta["seasonal_reported_3"] <- params_in["reporting_rate_3"]
-    init_theta["seasonal_reported_5"] <- params_in["reporting_rate_4"]
+    init_theta["seasonal_reported_1"] <- log(params_in["reporting_rate_1"]/(1-params_in["reporting_rate_1"]))
+    init_theta["seasonal_reported_2"] <-  log(params_in["reporting_rate_2"]/(1-params_in["reporting_rate_2"]))
+    init_theta["seasonal_reported_3"] <-  log(params_in["reporting_rate_3"]/(1-params_in["reporting_rate_3"]))
+    init_theta["seasonal_reported_5"] <-  log(params_in["reporting_rate_4"]/(1-params_in["reporting_rate_4"]))
     init_theta["seasonal_amplitude"]<- params_in["seasonal_amplitude"]
     init_theta["phi"] <- params_in["seasonal_timing"]
 

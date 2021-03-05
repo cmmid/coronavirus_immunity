@@ -7,7 +7,19 @@ covid_date <- as.Date("2020-02-10") # date that covid is first introduced
 covid_change_time <- as.Date("2020-03-23") #date of lockdown (i.e. schools closing)
 serology_time <- as.Date("2020-05-31") # time point of seology. CHECK
 #trace from which to take samples. Should already be formated appropiately. 
+load(here("fitting_seasonal/analysis", "trace_to_sample.Rdata"))
+# change to correct names and reporting as log odds
+colnames(trace_to_sample) <- c("ll","waning_day", "seasonal_R0", "seasonal_reported_1", 
+                                 "seasonal_reported_2", "seasonal_reported_3", 
+                                 "seasonal_reported_5", "seasonal_amplitude", 
+                                 "phi", "step")
+trace_to_sample$seasonal_reported_1 <- log(trace_to_sample$seasonal_reported_1/(1-trace_to_sample$seasonal_reported_1))
+trace_to_sample$seasonal_reported_2 <- log(trace_to_sample$seasonal_reported_2/(1-trace_to_sample$seasonal_reported_2))
+trace_to_sample$seasonal_reported_3 <- log(trace_to_sample$seasonal_reported_3/(1-trace_to_sample$seasonal_reported_3))
+trace_to_sample$seasonal_reported_5 <- log(trace_to_sample$seasonal_reported_5/(1-trace_to_sample$seasonal_reported_5))
 trace_to_sample <- data.frame(trace_to_sample)
+
+
 
 # storage
 model_deaths <- data.table()
