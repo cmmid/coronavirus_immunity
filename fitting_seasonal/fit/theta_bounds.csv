@@ -1,0 +1,9 @@
+﻿paramater,lower,upper
+waning_day,0.5,3000
+seasonal_R0,1,13
+seasonal_reported_1,0,0.001
+seasonal_reported_2,0,0.001
+seasonal_reported_3,0,0.001
+seasonal_reported_5,0,0.001
+seasonal_amplitude,0.1,2
+phi,-364,364
