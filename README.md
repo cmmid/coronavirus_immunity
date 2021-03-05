@@ -2,7 +2,7 @@
  code for paper - fitting seasonal coronavirus and simulating covid
 
 
-All the fitting, analysis and figure generation can be run from master_script.R
+All the fitting, analysis and figure generation can be run from "master_script.R"
 
 
 Package versions are: 
