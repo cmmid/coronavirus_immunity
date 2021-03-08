@@ -1,3 +1,9 @@
+################################################################################
+# Coronavirus cross-protection
+# Author: Naomi R Waterlow
+# Date: 2021-04-08
+################################################################################
+
 ##### SETUP #######
 run_start_2 <- as.Date("2020-01-01") # When to start the smulation
 run_end <- as.Date("2020-06-01") # When to end teh simulation
@@ -147,7 +153,8 @@ SERO_PLOT <- ggplot(sero, aes(x= ages)) +
   geom_point(aes(y=model, colour = interaction, group = sample), alpha=0.8) + 
   scale_color_gradient(low = "deepskyblue", high = "royalblue4") +
    labs(y = "Proportion positive", x = "Age group", colour = "Strength of protection")+ 
-  theme_linedraw()
+  theme_linedraw() + 
+  lims(y = c(0,0.2))
 
 tiff(here("figures","sero.tiff"), height = 2000, width = 3200, res = 300)
 SERO_PLOT

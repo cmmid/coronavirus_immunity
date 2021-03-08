@@ -1,3 +1,10 @@
+################################################################################
+# Coronavirus cross-protection
+# Author: Naomi R Waterlow
+# Date: 2021-04-08
+################################################################################
+
+
 # BM_PT functions
 
 get_log_posterior_no_covid <- function(theta, bb = "no", model_type){

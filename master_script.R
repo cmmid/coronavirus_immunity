@@ -1,8 +1,13 @@
+
+################################################################################
+# Coronavirus cross-protection
+# Author: Naomi R Waterlow
+# Date: 2021-04-08
+################################################################################
+
 # Overall setup script
 
 ####### LOAD THE INITIAL REQUIREMENTS ######
-
-
 # load the relevant packages
 library(data.table)
 library(MASS)

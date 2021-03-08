@@ -1,3 +1,11 @@
+################################################################################
+# Coronavirus cross-protection
+# Author: Naomi R Waterlow
+# Date: 2021-04-08
+################################################################################
+
+
+
 # Parallel tempering. 
 # Metropolis Coupled Markov Chain Monte Carlo
 

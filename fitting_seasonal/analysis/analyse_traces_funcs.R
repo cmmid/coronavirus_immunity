@@ -1,3 +1,11 @@
+################################################################################
+# Coronavirus cross-protection
+# Author: Naomi R Waterlow
+# Date: 2021-04-08
+################################################################################
+
+
+
 label_trace <- function(trace_in){
  
     colnames(trace_in) <- c("log_liklihood", 

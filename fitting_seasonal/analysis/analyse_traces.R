@@ -1,3 +1,9 @@
+################################################################################
+# Coronavirus cross-protection
+# Author: Naomi R Waterlow
+# Date: 2021-04-08
+################################################################################
+
 # Analyse the traces and create figures for paper. 
 
 ######## LOAD THE TRACES ######
@@ -11,17 +17,17 @@ timesteps <- 1:dim(total_trace[[1]])[1]
 trace_1 <- lapply(trace_temp, function(i) format_trace(i, thin=, burnin=12000,
                                                        keep_all = F))
 
-load(here("fitting_seasonal/analysis","SEIR_AWS_tracelims2_2020_03.Rdata"))
-trace_2_all <- total_trace
-trace_temp <- lapply(total_trace[1:n_chains], function(i) label_trace(i))
-timesteps <- 1:dim(total_trace[[1]])[1]
+load(here("fitting_seasonal/analysis","SEIR_AWS_trace_2.Rdata"))
+trace_2_all <- trace_to_save
+trace_temp <- lapply(trace_to_save[1:n_chains], function(i) label_trace(i))
+timesteps <- 1:dim(trace_temp[[1]])[1]
 trace_2 <- lapply(trace_temp, function(i) format_trace(i, thin=, burnin=12000,
                                                        keep_all = F))
 
 ######### CONVERGENCE DIAGNOSTIC #######
 
-compare_mcmc<-mcmc.list(mcmc(trace_1[[1]][1:22000,2:9]), 
-                        mcmc(trace_2[[1]][1:22000,2:9]))
+compare_mcmc<-mcmc.list(mcmc(trace_1[[1]][1:45000,2:9]), 
+                        mcmc(trace_2[[1]][1:45000,2:9]))
 
 gelman_rubin <-gelman.diag(compare_mcmc)
 

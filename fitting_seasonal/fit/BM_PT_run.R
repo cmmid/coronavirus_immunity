@@ -1,3 +1,9 @@
+################################################################################
+# Coronavirus cross-protection
+# Author: Naomi R Waterlow
+# Date: 2021-04-08
+################################################################################
+
 # runnning script for paralell tempering 
 ########## Load in params and functions and initialise paralisation
 
