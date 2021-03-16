@@ -10,7 +10,7 @@
 get_log_posterior_no_covid <- function(theta, bb = "no", model_type){
   
   ll <- run_model_get_logliks_seasonalonly(parameter_guesses = theta, bb, model_type)
-#   prior <- get_llprior(parameter_guesses = theta)
+#   prior <- get_llprior(parameter_guesses = theta) 
   log_posterior <- ll #+ prior
   return(log_posterior)
 }
@@ -168,7 +168,7 @@ run_model_seasonal <- function(parameters, model_type){
   times <- c(1:length_to_run)
   # run the model
   if(model_type == "SEIR"){
-    func_to_use <- SEIR_2virus_cons
+    func_to_use <- SEIR_2virus_cons_ld
   } else if(model_type =="SEIPRR") {
     func_to_use <- SEIPRR_2virus_interact_cons
   } else if(model_type == "SEIRR"){
@@ -177,7 +177,6 @@ run_model_seasonal <- function(parameters, model_type){
     message("Invalid model type! Stopped.")
     stop()
   }
-  
   outall <- as.data.table(ode(
     y = init_state,
     t = times,
@@ -392,7 +391,6 @@ reject_seasonal_Tech <- function(output_s, model_type){
   population$inf_year_age <- c(infected_year_age(output_s, model_type,
                                                  year_start  = length_to_run-364))
   population[,percent := as.numeric(inf_year_age)/V1*100]
-
   if(any(population$percent > 30, na.rm = T)){
     likelihood = -1000000
   } else {likelihood =0}
@@ -493,7 +491,6 @@ calc_lik_seasonal_ages_binomial <- function(reportin_2020_daily, parameters,
     
   }
 
-  
   # weight the off_seasons by half
   lik_summary <- to_match[, sum(likelihood, na.rm = T)]
   

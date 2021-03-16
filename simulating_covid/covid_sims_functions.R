@@ -9,10 +9,10 @@ library(RcppSims)
 library(ggplot2)
 #function that takes a sample as input and outputs the modelled daily deaths +
 # the modelled serology data and the Reffective over time
-run_model_on_sample <- function(transmission_rate, parameters_2020,
+run_model_on_sample <- function(test_params, parameters_2020,
                                 sigma, init_state_2020){
   # combine the parametes
-  parameters <- update_parameters_specific(transmission_rate = transmission_rate,
+  parameters <- update_parameters_specific(test_params = test_params,
                                            parameters = parameters_2020,
                                            sigma = sigma)
   # run the model 
@@ -55,14 +55,13 @@ run_seasonal_for_init <- function(parameter_guesses, model_type){
   return(list(init_state_2020 =init_state_2020, parameters_2019 = parameters))
 }
 
-optimise_ll_deaths <- function(transmission_rate, parameters_2020,
+optimise_ll_deaths <- function(test_params, parameters_2020,
                                sigma, init_state_2020){
   # combine the parametes
-  parameters <- update_parameters_specific(transmission_rate = transmission_rate,
+  parameters <- update_parameters_specific(test_params = test_params,
                                            parameters = parameters_2020,
                                            sigma = sigma)
   # run the model 
-
   output_2020 <- run_model_2020(parameters = parameters,
                                 init_state_2020 = init_state_2020)
   # calculate the deaths from model otuput
@@ -124,7 +123,7 @@ run_model_2020 <- function(parameters, init_state_2020){
   outall <- as.data.table(ode(
     y = unlist(init_state_2020),
     t = times_20,
-    func = SEIR_2virus_cons_ld,
+    func = SEIR_2virus_cons_ld, #SEIR_2virus_cons_ld
     parms = parameters,
     method = "rk4"))
   
@@ -162,10 +161,15 @@ update_parameters <- function(parameters){
 }
 
 #Update the transmission and interaction parameters
-update_parameters_specific <- function(transmission_rate, parameters, sigma){
+update_parameters_specific <- function(test_params, parameters, sigma){
+ 
   parameters$sig_R <- convert_sig(sigma)
-  parameters$beta_covid_0 <- transmission_rate
-  parameters$beta_covid_1 <- transmission_rate
+  parameters$beta_covid_0 <- test_params[1]
+  parameters$beta_covid_1 <- test_params[1]
+  # parameters$covid_intros <- c(rep(0,4),
+  #                              rep(test_params[2],9),
+  #                              rep(0,3))
+
   return(parameters)
 }
 
@@ -572,16 +576,13 @@ calc_youngest_ages <- function(input, parameters,type="SEIR"){
 
   to_plot <- data.table(
     model = proportions,
-    data = c(0.007,0.038,0.027,0.03,0.077, 0.102, 0.093, 0.093, 0.079,
-             0.079,0.078,0.078, 0.063,0.063, rep(NA,2)),
+    data = c(0.007,0.038,0.027,0.03,0.077, rep(NA,11)),
     ages = factor(c("0-4", "5-9","10-14", "15-19", "20-24", "25-29", "30-34", "35-39", 
                     "40-44", "45-49", "50-54", "55-59", "60-64" , "65-69", "70-74", "75+"), 
                   levels = c("0-4", "5-9","10-14", "15-19", "20-24", "25-29", "30-34", "35-39", 
                              "40-44", "45-49", "50-54", "55-59", "60-64",  "65-69", "70-74", "75+")),
-    lower = c(0.000,0.002,0.00,0.001,0.018,0.08, 0.072, 0.072, 0.059, 0.059,
-              0.058,0.058, 0.043, 0.043, rep(NA,2)), 
-    upper = c(0.058,0.101,0.077,0.084,0.159, 0.126, 0.113, 0.113, 0.099, 0.099,
-              0.097, 0.097, 0.082, 0.083,rep(NA,2))
+    lower = c(0.000,0.002,0.00,0.001,0.018,rep(NA,11)), 
+    upper = c(0.058,0.101,0.077,0.084,0.159,rep(NA,11))
   )
   return(to_plot)
 }

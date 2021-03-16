@@ -4,7 +4,7 @@
 # Author: Naomi R Waterlow
 # Date: 2021-04-08
 ################################################################################
-
+setwd("~/Documents/GitHub/coronavirus_immunity/")
 # Overall setup script
 
 ####### LOAD THE INITIAL REQUIREMENTS ######
@@ -22,7 +22,7 @@ library(parallel)
 library(doParallel)
 library(coda)
 
-install.packages("RcppSims_0.1.0.tar.gz", type = "source")
+#install.packages("RcppSims_0.1.0.tar.gz", type = "source")
 library(RcppSims)
 
 # load in the functions and parameters for fitting
@@ -55,6 +55,15 @@ source(here("simulating_covid", "covid_sims_functions.R"))
 # if any fixed parameters have changed need to change upper limit transmission
 # rate by running last line of this script and then putting in as limit
 source(here("simulating_covid", "Covid_sims_main.R"))
+
+
+###### EXTRAS #####
+# extra plots
+source(here("figures", "plotting_data.R"))
+# compare fit with Kissler parameters
+file.edit(here("kissler_compariosn.R"))
+
+
 
 
 
