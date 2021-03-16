@@ -25,13 +25,12 @@ trace_to_sample$seasonal_reported_3 <- log(trace_to_sample$seasonal_reported_3/(
 trace_to_sample$seasonal_reported_5 <- log(trace_to_sample$seasonal_reported_5/(1-trace_to_sample$seasonal_reported_5))
 trace_to_sample <- data.frame(trace_to_sample)
 
-
-
 # storage
 model_deaths <- data.table()
 r_0s <- data.table()
 r_effs <- data.table()
 sero <- data.table()
+intros <- data.table()
 
 sig_list <- c(0,0.2,0.4,0.6,0.8,1)
 
@@ -49,11 +48,11 @@ for(i in 1:100){
     # loop here over different interaction parameters
     interaction_param <- sig
     
-    transmission_fit <- optim(par = parameters_2020$beta_other, # use as the transmission parameter (convert to R0 after) 
+    transmission_fit <- optim(par = c(parameters_2020$beta_other), # use as the transmission parameter (convert to R0 after) 
                               fn = optimise_ll_deaths, 
-                              method = "Brent",
+                              method = "Brent", #"L-BFGS-B",#
                               lower = 0.01, 
-                              upper =  0.3631551, 
+                              upper = 0.5,
                               parameters_2020 = parameters_2020, 
                               sigma = interaction_param,
                               init_state_2020 = seasonal_out["init_state_2020"])
@@ -62,7 +61,7 @@ for(i in 1:100){
     # ll_deaths
     # run the model with the ML estimate parameters
 
-    output_list <- run_model_on_sample(transmission_rate =  transmission_fit$par,
+    output_list <- run_model_on_sample(test_params  =  transmission_fit$par,
                                        parameters_2020 = parameters_2020,
                                        sigma = interaction_param, 
                                        init_state_2020 = seasonal_out["init_state_2020"])
@@ -93,34 +92,41 @@ for(i in 1:100){
     
     sero <- rbind(sero,sero_temp)
     
+    # intros_temp <- data.table(intro_val = transmission_fit$par[2])
+    # intros_temp$sample <- sample_num
+    # intros_temp$interaction <- interaction_param
+    # 
+    # intros <- rbind(intros,intros_temp)
+    
     
   }
   print(i)
 }
-# store the serology output with the output from other samples
 
-# store the Reffective output with the output from other samples
-
-
-
-
+#colours
+cc <- scales::seq_gradient_pal("deepskyblue", "royalblue4", "Lab")(seq(0,1,length.out=6))
+#format
 model_deaths$sample <- factor(model_deaths$sample)
-
+model_deaths$interaction <- factor(model_deaths$interaction)
+#create plot
  FIT_PLOT <- ggplot() + 
   geom_point(data=model_deaths, aes(x = date, y = total, colour = interaction ),alpha=0.5) +
   facet_grid(interaction~.)+
-   scale_color_gradient(low = "deepskyblue", high = "royalblue4") +
-  geom_point(data = deaths_covid, aes(x = date, y = actual_deaths), size = 1) + 
+scale_colour_manual(values=cc) +
+   geom_point(data = deaths_covid, aes(x = date, y = actual_deaths), size = 1) + 
   geom_vline(xintercept = covid_date, colour = "red" ) + 
   labs(x = "Date", y = "Number of deaths", colour = "strength of protection") + 
    lims(x = c(as.Date("2020-02-01"), as.Date("2020-05-31")))  + 
-   theme_linedraw()
+   theme_linedraw() +
+   theme(strip.text.y = element_text(angle = 0))
  
 colnames(r_effs) <- c("r_eff", "timestep", "sample", "interaction")
 
 r_effs$sample <- factor(r_effs$sample)
 r_effs <- as.data.frame(r_effs)
 r_effs$date <- as.Date(r_effs$timestep, origin = run_start_2)
+r_effs$interaction <- factor(r_effs$interaction)
+
 
 tiff(here("figures","reffs.tiff"), height = 2000, width = 3200, res = 300)
 
@@ -130,7 +136,9 @@ ggplot(r_effs, aes(x=date, y = r_eff, group=sample, colour = interaction )) +
   geom_hline(yintercept = 3.75) + 
   geom_vline(xintercept = as.Date((covid_date-run_start_2)[[1]], origin = run_start_2), colour = "red") + 
   labs(x = "Date", y = "R-effective", colour = "Strength of protection") + 
-  theme_linedraw()
+  theme_linedraw() + 
+  scale_colour_manual(values=cc) + 
+  theme(strip.text.y = element_text(angle = 0))
 
 dev.off()
 
@@ -148,11 +156,13 @@ grid.arrange(FIT_PLOT, tableGrob(r_0s_summary, rows = NULL, theme =  gridExtra::
   rowhead = list(fg_params=list(cex = 0.75)))), layout_matrix = rbind(1,1,1,2))
 dev.off()
 
+sero$interaction <- as.factor(sero$interaction)
+
 SERO_PLOT <- ggplot(sero, aes(x= ages)) + 
   geom_pointrange(aes(y=data, ymin=lower, ymax=upper)) +
   geom_point(aes(y=model, colour = interaction, group = sample), alpha=0.8) + 
-  scale_color_gradient(low = "deepskyblue", high = "royalblue4") +
-   labs(y = "Proportion positive", x = "Age group", colour = "Strength of protection")+ 
+  scale_colour_manual(values=cc) +
+  labs(y = "Proportion positive", x = "Age group", colour = "Strength of protection")+ 
   theme_linedraw() + 
   lims(y = c(0,0.2))
 
