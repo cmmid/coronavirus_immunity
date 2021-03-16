@@ -97,7 +97,6 @@ plot_rbinom <- function(samples,
   for(i in 1:samples_to_take){
     # or manually write them
     sample_num <- sample(trace_period, size=1)
-
     params_in <- unlist(trace_dt[sample_num,])
     init_theta <- c()
     init_theta["waning_day"] <- params_in["waning_duration"]
@@ -172,7 +171,7 @@ plot_rbinom <- function(samples,
     labs(x = "Month", y = "Number of infections reported") +
     geom_point(aes(y = true_value), colour = "black",) + 
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-    theme(legend.position = "none")
+    theme(legend.position = "none", strip.text.y = element_text(angle = 0))
   return(RBINOM)}
 
 
