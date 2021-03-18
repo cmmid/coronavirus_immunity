@@ -168,7 +168,7 @@ run_model_seasonal <- function(parameters, model_type){
   times <- c(1:length_to_run)
   # run the model
   if(model_type == "SEIR"){
-    func_to_use <- SEIR_2virus_cons_ld
+    func_to_use <- SEIR_2virus_cons
   } else if(model_type =="SEIPRR") {
     func_to_use <- SEIPRR_2virus_interact_cons
   } else if(model_type == "SEIRR"){

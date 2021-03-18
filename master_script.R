@@ -1,4 +1,3 @@
-
 ################################################################################
 # Coronavirus cross-protection
 # Author: Naomi R Waterlow
@@ -22,7 +21,8 @@ library(parallel)
 library(doParallel)
 library(coda)
 
-#install.packages("RcppSims_0.1.0.tar.gz", type = "source")
+install.packages("~/Documents/GitHub/Covid_simulations/AWS/RcppSims_0.1.0.tar.gz",
+                 , repos = NULL, type = "source")
 library(RcppSims)
 
 # load in the functions and parameters for fitting
@@ -56,6 +56,13 @@ source(here("simulating_covid", "covid_sims_functions.R"))
 # rate by running last line of this script and then putting in as limit
 source(here("simulating_covid", "Covid_sims_main.R"))
 
+
+####### COVID FOREWARD PROJECTIONS ######
+
+# source any required functions
+source(here("projections", "projections_functions.R"))
+# run the simulations and create graphs
+source(here("projections", "projections_run.R"))
 
 ###### EXTRAS #####
 # extra plots

@@ -30,15 +30,19 @@ model_deaths <- data.table()
 r_0s <- data.table()
 r_effs <- data.table()
 sero <- data.table()
-intros <- data.table()
+transmission <- data.table()
+introductions <- data.table()
 
 sig_list <- c(0,0.2,0.4,0.6,0.8,1)
 
-for(i in 1:100){
+n_samples <- 2
+samples_to_take <- sample(x=1:dim(trace_to_sample)[1],size=n_samples,replace = T)
+
+for(i in 1:n_samples){
   for(sig in sig_list){
     # need to run a loop or an apply over the number of samples required.
     # take sample of seasonal parameters
-    sample_num <- sample(x=1:dim(trace_to_sample)[1],size=1,replace = T)
+    sample_num <- samples_to_take[i]
     seasonal_sample <- trace_to_sample[sample_num,]
     
     # run the seaonal model in order to get init start for the covid model
@@ -48,11 +52,11 @@ for(i in 1:100){
     # loop here over different interaction parameters
     interaction_param <- sig
     
-    transmission_fit <- optim(par = c(parameters_2020$beta_other), # use as the transmission parameter (convert to R0 after) 
+    transmission_fit <- optim(par = c(parameters_2020$beta_other,4), # use as the transmission parameter (convert to R0 after) 
                               fn = optimise_ll_deaths, 
-                              method = "Brent", #"L-BFGS-B",#
-                              lower = 0.01, 
-                              upper = 0.5,
+                              method = "L-BFGS-B",#"Brent", #
+                              lower = c(0.01,0.1), 
+                              upper = c(0.6,15),
                               parameters_2020 = parameters_2020, 
                               sigma = interaction_param,
                               init_state_2020 = seasonal_out["init_state_2020"])
@@ -92,12 +96,17 @@ for(i in 1:100){
     
     sero <- rbind(sero,sero_temp)
     
-    # intros_temp <- data.table(intro_val = transmission_fit$par[2])
-    # intros_temp$sample <- sample_num
-    # intros_temp$interaction <- interaction_param
-    # 
-    # intros <- rbind(intros,intros_temp)
+    transmission_temp <- data.table(transmission_val = transmission_fit$par[1])
+    transmission_temp$sample <- sample_num
+    transmission_temp$interaction <- interaction_param
+
+    transmission <- rbind(transmission,transmission_temp)
     
+    introductions_temp <- data.table(intro_val = transmission_fit$par[2])
+    introductions_temp$sample <- sample_num
+    introductions_temp$interaction <- interaction_param
+    
+    introductions <- rbind(introductions,introductions_temp)
     
   }
   print(i)

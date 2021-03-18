@@ -11,11 +11,12 @@ library(ggplot2)
 # the modelled serology data and the Reffective over time
 run_model_on_sample <- function(test_params, parameters_2020,
                                 sigma, init_state_2020){
-  # combine the parametes
+  # combine the parameters
   parameters <- update_parameters_specific(test_params = test_params,
                                            parameters = parameters_2020,
                                            sigma = sigma)
   # run the model 
+
   output_2020 <- run_model_2020(parameters = parameters,
                                 init_state_2020 = init_state_2020)
   # calculate the deaths from model otuput
@@ -118,12 +119,11 @@ calculate_deaths <- function(model_output, parameters){
 run_model_2020 <- function(parameters, init_state_2020){
   #times over which to run the model
   times_20 <- c(1:length_to_run_2)
-
   # run the model
   outall <- as.data.table(ode(
     y = unlist(init_state_2020),
     t = times_20,
-    func = SEIR_2virus_cons_ld, #SEIR_2virus_cons_ld
+    func = SEIR_2virus_cons, #SEIR_2virus_cons_ld
     parms = parameters,
     method = "rk4"))
   
@@ -164,11 +164,12 @@ update_parameters <- function(parameters){
 update_parameters_specific <- function(test_params, parameters, sigma){
  
   parameters$sig_R <- convert_sig(sigma)
+  parameters$sig_I <- convert_sig(sigma*0.5)
   parameters$beta_covid_0 <- test_params[1]
   parameters$beta_covid_1 <- test_params[1]
-  # parameters$covid_intros <- c(rep(0,4),
-  #                              rep(test_params[2],9),
-  #                              rep(0,3))
+  parameters$covid_intros <- c(rep(0,4),
+                               rep(test_params[2],9),
+                               rep(0,3))
 
   return(parameters)
 }
@@ -179,23 +180,23 @@ summary_stats_reported_both <- function(outall, type) {
 
   #Calculate the incidence
   colnames(outall) <- naming_states(type = type)
-  
-  # outall[, OTHER_0 := Other_reported1 - shift(Other_reported1, 1L, type = "lag")]
-  # outall[, OTHER_5 := Other_reported2 - shift(Other_reported2, 1L, type = "lag")]
-  # outall[, OTHER_10 := Other_reported3 - shift(Other_reported3, 1L, type = "lag")]
-  # outall[, OTHER_15 := Other_reported4 - shift(Other_reported4, 1L, type = "lag")]
-  # outall[, OTHER_20 := Other_reported5 - shift(Other_reported5, 1L, type = "lag")]
-  # outall[, OTHER_25 := Other_reported6 - shift(Other_reported6, 1L, type = "lag")]
-  # outall[, OTHER_30 := Other_reported7 - shift(Other_reported7, 1L, type = "lag")]
-  # outall[, OTHER_35 := Other_reported8 - shift(Other_reported8, 1L, type = "lag")]
-  # outall[, OTHER_40 := Other_reported9 - shift(Other_reported9, 1L, type = "lag")]
-  # outall[, OTHER_45 := Other_reported10 - shift(Other_reported10, 1L, type = "lag")]
-  # outall[, OTHER_50 := Other_reported11 - shift(Other_reported11, 1L, type = "lag")]
-  # outall[, OTHER_55 := Other_reported12 - shift(Other_reported12, 1L, type = "lag")]
-  # outall[, OTHER_60 := Other_reported13 - shift(Other_reported13, 1L, type = "lag")]
-  # outall[, OTHER_65 := Other_reported14 - shift(Other_reported14, 1L, type = "lag")]
-  # outall[, OTHER_70 := Other_reported15 - shift(Other_reported15, 1L, type = "lag")]
-  # outall[, OTHER_75 := Other_reported16 - shift(Other_reported16, 1L, type = "lag")]
+
+  outall[, OTHER_0 := Other_reported1 - shift(Other_reported1, 1L, type = "lag")]
+  outall[, OTHER_5 := Other_reported2 - shift(Other_reported2, 1L, type = "lag")]
+  outall[, OTHER_10 := Other_reported3 - shift(Other_reported3, 1L, type = "lag")]
+  outall[, OTHER_15 := Other_reported4 - shift(Other_reported4, 1L, type = "lag")]
+  outall[, OTHER_20 := Other_reported5 - shift(Other_reported5, 1L, type = "lag")]
+  outall[, OTHER_25 := Other_reported6 - shift(Other_reported6, 1L, type = "lag")]
+  outall[, OTHER_30 := Other_reported7 - shift(Other_reported7, 1L, type = "lag")]
+  outall[, OTHER_35 := Other_reported8 - shift(Other_reported8, 1L, type = "lag")]
+  outall[, OTHER_40 := Other_reported9 - shift(Other_reported9, 1L, type = "lag")]
+  outall[, OTHER_45 := Other_reported10 - shift(Other_reported10, 1L, type = "lag")]
+  outall[, OTHER_50 := Other_reported11 - shift(Other_reported11, 1L, type = "lag")]
+  outall[, OTHER_55 := Other_reported12 - shift(Other_reported12, 1L, type = "lag")]
+  outall[, OTHER_60 := Other_reported13 - shift(Other_reported13, 1L, type = "lag")]
+  outall[, OTHER_65 := Other_reported14 - shift(Other_reported14, 1L, type = "lag")]
+  outall[, OTHER_70 := Other_reported15 - shift(Other_reported15, 1L, type = "lag")]
+  outall[, OTHER_75 := Other_reported16 - shift(Other_reported16, 1L, type = "lag")]
   
   outall[, COVID_0 := Covid_reported1 - shift(Covid_reported1, 1L, type = "lag")]
   outall[, COVID_5 := Covid_reported2 - shift(Covid_reported2, 1L, type = "lag")]
