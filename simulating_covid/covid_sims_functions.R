@@ -16,13 +16,12 @@ run_model_on_sample <- function(test_params, parameters_2020,
                                            parameters = parameters_2020,
                                            sigma = sigma)
   # run the model 
-
   output_2020 <- run_model_2020(parameters = parameters,
                                 init_state_2020 = init_state_2020)
   # calculate the deaths from model otuput
   model_deaths <- calculate_deaths(model_output = output_2020,
                                    parameters = parameters)
-
+# browser()
   # calculate the serology data
   serology <- calc_youngest_ages(output_2020, parameters)
  
@@ -47,11 +46,13 @@ run_seasonal_for_init <- function(parameter_guesses, model_type){
   # put into parameter list
   parameters <- create_parameters(parameter_guesses = parameter_guesses)
   #run the model
+  parameters$amplitude_covid = 0
   output_s <- run_model_seasonal(parameters, model_type = model_type)
   colnames(output_s) <- naming_states(model_type)
   # change step to date and save the states @ required start date (run_start_2)
   output_s[, date := as.Date(time, origin = lp_15)]
   init_state_2020 <- output_s[date == run_start_2,2:(ncol(output_s)-1)]
+
   #return the new initial state
   return(list(init_state_2020 =init_state_2020, parameters_2019 = parameters))
 }
@@ -59,6 +60,7 @@ run_seasonal_for_init <- function(parameter_guesses, model_type){
 optimise_ll_deaths <- function(test_params, parameters_2020,
                                sigma, init_state_2020){
   # combine the parametes
+
   parameters <- update_parameters_specific(test_params = test_params,
                                            parameters = parameters_2020,
                                            sigma = sigma)
@@ -66,6 +68,7 @@ optimise_ll_deaths <- function(test_params, parameters_2020,
   output_2020 <- run_model_2020(parameters = parameters,
                                 init_state_2020 = init_state_2020)
   # calculate the deaths from model otuput
+
   model_deaths <- calculate_deaths(model_output = output_2020,
                                    parameters = parameters)
   # calculate the log likelihood
@@ -120,10 +123,13 @@ run_model_2020 <- function(parameters, init_state_2020){
   #times over which to run the model
   times_20 <- c(1:length_to_run_2)
   # run the model
-  outall <- as.data.table(ode(
+  parameters$amplitude_covid <- parameters$beta_covid_0 * (parameters$amplitude/
+                                                           parameters$beta_other)
+    
+    outall <- as.data.table(ode(
     y = unlist(init_state_2020),
     t = times_20,
-    func = SEIR_2virus_cons, #SEIR_2virus_cons_ld
+    func = SEIR_2virus_cons_season, 
     parms = parameters,
     method = "rk4"))
   
@@ -147,7 +153,7 @@ update_parameters <- function(parameters){
   parameters$contacts_reduc <-(((google_mobility_use$rolling_mean/100)) +1)
   parameters$waning_covid <- parameters$waning_other
   parameters$gamma_covid <- 1/4
-  parameters$incubation_covid <- 1/3
+  parameters$incubation_covid <- 1/2.5
   parameters$inf_to_symp_covid = 1/(22/2)
   parameters$reporting_delay_covid = 1/(22/2)
   parameters$covid_deaths[1] =  as.numeric(IFRs_actual[1,"proportion"]) #0.00004,
@@ -156,20 +162,25 @@ update_parameters <- function(parameters){
   parameters$covid_deaths[4] =  as.numeric(IFRs_actual[4,"proportion"]) #0.0049,
   parameters$covid_deaths[5] =  as.numeric(IFRs_actual[5,"proportion"]) #0.131,
   
+  parameters$phi <- length_to_run%%364 + parameters$phi
 
   return(parameters)
 }
 
 #Update the transmission and interaction parameters
-update_parameters_specific <- function(test_params, parameters, sigma){
- 
+update_parameters_specific <- function(test_params, parameters, sigma, 
+                                       other_way = F){
   parameters$sig_R <- convert_sig(sigma)
-  parameters$sig_I <- convert_sig(sigma*0.5)
   parameters$beta_covid_0 <- test_params[1]
   parameters$beta_covid_1 <- test_params[1]
   parameters$covid_intros <- c(rep(0,4),
                                rep(test_params[2],9),
                                rep(0,3))
+  if(other_way ==T){
+    if(sigma_otherway=="same"){
+      parameters$sig_I <- convert_sig(sigma)
+    } else  {parameters$sig_I <- convert_sig(sigma_otherway)}
+  }
 
   return(parameters)
 }
@@ -423,7 +434,7 @@ calc_NGM_change <- function(outall,parameters,timestep){
   sus_rates = parameters$red_susc_covid
   immune = parameters$covid_imm
   contactmatrix <- calc_contacts_timestep(timestep,parameters,"polymod")
-  
+
   #Work out the transmssion matrix (as per page 6 of notebook)
   Transmission <- matrix(nrow=length(pop_numbers)*2, ncol=length(pop_numbers)*2, 0)
   for (i in 1:length(pop_numbers)){
@@ -469,19 +480,23 @@ calc_NGM_change <- function(outall,parameters,timestep){
 
 
 calc_contacts_timestep <- function(timestep, parameters, type){
-  
   if(type == "polymod"){
+
     if(timestep<parameters$mobility_start){
-      contactmatrix = parameters$contacts_hh +  parameters$contacts_school +  parameters$contacts_other;
+      contactmatrix = parameters$contacts_all
+      
     } else if(timestep>=(parameters$mobility_start)){
-      contactmatrix = parameters$contacts_hh +  parameters$contacts_school + 
-        (parameters$contacts_other*parameters$contacts_reduc[timestep - as.numeric(parameters$mobility_start)+1]);
+      contactmatrix = parameters$contacts_all - 
+        (1-parameters$contacts_reduc[timestep - as.numeric(parameters$mobility_start)+1])*
+        parameters$contacts_other*parameters$contacts_all
+      
       if(timestep>= parameters$covid_time + parameters$covid_change_time ){
-        contactmatrix = contactmatrix - parameters$contacts_school
+        contactmatrix = contactmatrix - parameters$contacts_school*parameters$contacts_all
         contactmatrix = contactmatrix * parameters$social_distancing
-        contactmatrix[1:3, 1:16] <- contactmatrix[1:3, 1:16]*parameters$child_extra_reduc
-        contactmatrix[4:16, 1:3] <- contactmatrix[4:16, 1:3]*parameters$child_extra_reduc
+        # contactmatrix[1:3, 1:16] <- contactmatrix[1:3, 1:16]*parameters$child_extra_reduc
+        # contactmatrix[4:16, 1:3] <- contactmatrix[4:16, 1:3]*parameters$child_extra_reduc
       }}
+  
   } else  if(type == "bbc" ){
     
     if(timestep< (parameters$covid_time + parameters$covid_change_time)){
@@ -491,7 +506,7 @@ calc_contacts_timestep <- function(timestep, parameters, type){
     }
     
   }
-  
+  if(any(contactmatrix <0)){print("OhOh! Contacts are negative")}
   return(contactmatrix)
 }
 
@@ -590,6 +605,23 @@ calc_youngest_ages <- function(input, parameters,type="SEIR"){
 
 
 
+relabel_trace <-  function(trace_in){
+  # relabel the columns
+  colnames(trace_in) <- c("log_liklihood", 
+                          "waning_day", "seasonal_R0", 
+                          "seasonal_reported_1", "seasonal_reported_2", "seasonal_reported_3", 
+                          "seasonal_reported_5", "seasonal_amplitude", "phi","timesteps"
+                          )
+  # convert the reporteds back on to seasonal scale
+  
+  trace_in[,seasonal_reported_1 := log(seasonal_reported_1/(1-seasonal_reported_1))]
+  trace_in[,seasonal_reported_2 := log(seasonal_reported_2/(1-seasonal_reported_2))]
+  trace_in[,seasonal_reported_3 := log(seasonal_reported_3/(1-seasonal_reported_3))]
+  trace_in[,seasonal_reported_5 := log(seasonal_reported_5/(1-seasonal_reported_5))]
+  
+
+  return(trace_in)
+}
 
 
   

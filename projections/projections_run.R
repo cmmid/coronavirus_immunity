@@ -12,11 +12,15 @@ length_to_run_3 <- 4000
 covid_change_time <- "3000-01-01"
 mobility_date <- "3000-01-01"
 
+seasonal_factor_covid <- "yes" # "yes" or "no
+sigma_otherway <- 0#"same"  # "same" or 0
+
 projections_all <- data.frame()
 # 1. get the sample 
-for(i in 1:n_samples){
+for(i in 1:1#n_samples
+    ){
 sample_num <- samples_to_take[i]
-seasonal_sample <- trace_to_sample[sample_num,]
+seasonal_sample <- unlist(trace_to_sample[sample_num,])
 
 # run the seasonal model in order to get init start for the covid model
 seasonal_out <- run_seasonal_for_init(seasonal_sample, model_type = "SEIR")
@@ -72,8 +76,12 @@ PROJ_2 <- ggplot(projections_all_2, aes(x = date,y=value, colour = variable,
   facet_grid(inter~.) +
    theme_linedraw() 
 
+tiff(here("figures",paste0("projections_",seasonal_factor_covid,"_", 
+                           sigma_otherway, ".tiff")), height = 2000, width = 3200, res = 300)
+
 grid.arrange(PROJ_1, PROJ_2, widths = c(1,2))
 
+dev.off()
 
 
 

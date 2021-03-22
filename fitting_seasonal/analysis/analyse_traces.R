@@ -106,3 +106,12 @@ print("seasonal amplitude quantiles")
 print(quantile(trace_to_sample$seasonal_amplitude, probs = c(0.025, 0.5, 0.975)))
 print("seasonal timing quantiles")
 print(quantile(trace_to_sample$seasonal_timing, probs = c(0.025, 0.5, 0.975)))
+
+# percentage change in amplitude
+
+print(paste0("amplitude as proportion of R0 is ",
+             unname(quantile(trace_to_sample$seasonal_amplitude, probs = 0.5)/ 
+               quantile(trace_to_sample$seasonal_R0, probs = 0.5))
+             )
+      )
+
