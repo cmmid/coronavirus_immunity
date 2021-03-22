@@ -10,6 +10,7 @@
 get_log_posterior_no_covid <- function(theta, bb = "no", model_type){
   
   ll <- run_model_get_logliks_seasonalonly(parameter_guesses = theta, bb, model_type)
+  print(ll)
 #   prior <- get_llprior(parameter_guesses = theta) 
   log_posterior <- ll #+ prior
   return(log_posterior)
@@ -572,7 +573,8 @@ calc_R0_SEIPRR <- function(beta_input, parameters, pop_params,
     }else {
       beta = parameters$amplitude * cos(2*pi*(timestep-parameters$phi)/364) + beta
       }
-    contactmatrix = parameters$contacts_hh +  parameters$contacts_school +  parameters$contacts_other
+    contactmatrix = parameters$contacts_all
+      #parameters$contacts_hh +  parameters$contacts_school +  parameters$contacts_other
   }
   
   

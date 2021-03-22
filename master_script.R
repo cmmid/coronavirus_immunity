@@ -21,9 +21,9 @@ library(parallel)
 library(doParallel)
 library(coda)
 
-install.packages("~/Documents/GitHub/Covid_simulations/AWS/RcppSims_0.1.0.tar.gz",
-                 , repos = NULL, type = "source")
-library(RcppSims)
+install.packages("RcppCoronaImmunitty_0.1.0.tar.gz",
+               repos = NULL, type = "source")
+library(RcppCoronaImmunitty)
 
 # load in the functions and parameters for fitting
 source(here("fitting_seasonal/fit", "BM_PT_functions.R"))

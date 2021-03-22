@@ -113,9 +113,17 @@ fixed_parameters <- c(
 # create the UK contact matrix
 # Load polymod data
 contacts_all <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_all.csv"), stringsAsFactors = F)))[,2:17]
-contacts_hh <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_hh.csv"), stringsAsFactors = F)))[,2:17]
-contacts_school <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_school.csv"), stringsAsFactors = F)))[,2:17]
-contacts_other <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_other.csv"), stringsAsFactors = F)))[,2:17]
+contacts_hh_num <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_hh.csv"), stringsAsFactors = F)))[,2:17]
+contacts_school_num  <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_school.csv"), stringsAsFactors = F)))[,2:17]
+contacts_other_num  <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_other.csv"), stringsAsFactors = F)))[,2:17]
+
+subset_contacts = contacts_school_num + contacts_other_num + contacts_hh_num
+
+# work out the relative contribition of each of the subsets
+contacts_school = contacts_school_num /subset_contacts
+contacts_hh = contacts_hh_num /subset_contacts
+contacts_other = contacts_other_num /subset_contacts
+
 
 
 pop_params_base <- list(
