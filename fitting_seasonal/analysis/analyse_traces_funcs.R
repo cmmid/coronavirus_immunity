@@ -150,7 +150,7 @@ plot_rbinom <- function(samples,
     print(i)
   }
   reporting_store[seasonal_15_20, on = c("year_week", "variable"), true_value:= i.value ]
-  
+
   reporting_store <- rbind(reporting_store,data.frame("2017-04-03", "OTHER_p5", NA, NA, NA ,NA), use.names=F)
   reporting_store <- rbind(reporting_store,data.frame("2017-04-03", "OTHER_p15", NA, NA, NA ,NA), use.names=F)
   reporting_store <- rbind(reporting_store,data.frame("2017-04-03", "OTHER_p45", NA, NA, NA ,NA), use.names=F)
@@ -163,15 +163,19 @@ plot_rbinom <- function(samples,
   reporting_store[variable == "OTHER_p15", nice_label := "Age 15 - 44"]
   reporting_store[variable == "OTHER_p45", nice_label := "Age 45 - 64"]
   reporting_store[variable == "OTHER_p65", nice_label := "Age 65 +"]
-  
+
+  reporting_store$year_week <- as.Date(reporting_store$year_week)
   RBINOM <- ggplot(reporting_store, aes(x = year_week, y = rbb),) + 
     geom_point(alpha = 0.4, colour = "deepskyblue2") +
-    facet_grid(nice_label~., scales = "free_y") + 
+    facet_wrap(nice_label~., scales = "free_y", ncol=1) + 
     theme_linedraw()+
+    scale_x_date(date_breaks = "1 year")+
     labs(x = "Month", y = "Number of infections reported") +
     geom_point(aes(y = true_value), colour = "black",) + 
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-    theme(legend.position = "none", strip.text.y = element_text(angle = 0))
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + 
+    theme(legend.position = "none", strip.text.y = element_text(angle = 0), 
+          strip.background = element_rect(colour="white", fill="white"),
+          strip.text = element_text(colour = 'black',hjust = 0))
   return(RBINOM)}
 
 

@@ -21,8 +21,8 @@ library(parallel)
 library(doParallel)
 library(coda)
 
-install.packages("RcppCoronaImmunitty_0.1.0.tar.gz",
-               repos = NULL, type = "source")
+#install.packages("RcppCoronaImmunitty_0.1.0.tar.gz",
+#               repos = NULL, type = "source")
 library(RcppCoronaImmunitty)
 
 # load in the functions and parameters for fitting
