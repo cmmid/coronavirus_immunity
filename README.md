@@ -1,8 +1,14 @@
 # coronavirus_immunity
- code for paper - fitting seasonal coronavirus and simulating covid
+ 
+ This repository contains the code for the paper: Duration of immunity to seasonal coronaviruses: implications for COVID-19
+ 
 
+All the fitting, analysis and figure generation can be run from "master_script.R". This loads in all the dependencies and functions. It has to be run in the order specified. All the code and data (which is publically available) are in the repo, and can be run directly from the master script. However please note that some elements (particularly the fitting) is time-consuming. The fitted traces are included in the repo, so that further analysis can be followed without having to run the whole fitting mechanism. 
 
-All the fitting, analysis and figure generation can be run from "master_script.R"
+Note that the main model code is stored within a package  ( RcppCoronaImmunity_0.1.0.tar.gz) for convienience of use on HPCs. 
+
+© 2021 Naomi R Waterlow, Edwin Van Leewen, Stefan Flasche, Rosalind M Eggo
+Corresponding author: Naomi R Waterlow, naomi.waterlow1@lshtm.ac.uk
 
 
 Package versions are: 

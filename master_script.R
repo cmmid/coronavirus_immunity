@@ -1,7 +1,7 @@
 ################################################################################
 # Coronavirus cross-protection
 # Author: Naomi R Waterlow
-# Date: 2021-04-08
+# Date: 2021-04-25
 ################################################################################
 setwd("~/Documents/GitHub/coronavirus_immunity/")
 # Overall setup script
@@ -21,7 +21,8 @@ library(parallel)
 library(doParallel)
 library(coda)
 
-
+## This is the package that contains the actual model code. It's in a package 
+# for convenience when running on a cluster.
 #install.packages("RcppCoronaImmunitty_0.1.0.tar.gz",
 #               repos = NULL, type = "source")
 library(RcppCoronaImmunitty)
