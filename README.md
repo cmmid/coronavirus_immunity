@@ -1,4 +1,4 @@
-# coronavirus_immunity
+# Coronavirus_immunity
  
  This repository contains the code for the paper: Duration of immunity to seasonal coronaviruses: implications for COVID-19
  
@@ -8,8 +8,8 @@ All the fitting, analysis and figure generation can be run from "master_script.R
 Note that the main model code is stored within a package  ( RcppCoronaImmunity_0.1.0.tar.gz) for convienience of use on HPCs. 
 
 © 2021 Naomi R Waterlow, Edwin Van Leewen, Stefan Flasche, Rosalind M Eggo
-Corresponding author: Naomi R Waterlow, naomi.waterlow1@lshtm.ac.uk
 
+Corresponding author: Naomi R Waterlow, naomi.waterlow1@lshtm.ac.uk
 
 Package versions are: 
 
@@ -30,6 +30,7 @@ rootSolve_1.8.2.1
 deSolve_1.28
 MASS_7.3-51.6
 data.table_1.13.4
+forcats_0.5.0
 
 
 All analysis except for the fitting was done in R version 4.0.0 on macOS Catalina 10.15.7. The fitting was done on R 3.4 on AWS ec2 machines, running a linux AMI. On AWS the package mvtnorm was version 1.0.8.
