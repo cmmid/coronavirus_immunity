@@ -4,9 +4,6 @@
 # Date: 2021-04-08
 ################################################################################
 
-# Functions for covid simulations
-library(RcppSims)
-library(ggplot2)
 #function that takes a sample as input and outputs the modelled daily deaths +
 # the modelled serology data and the Reffective over time
 run_model_on_sample <- function(test_params, parameters_2020,
@@ -89,7 +86,7 @@ calc_ll_covid_deaths <- function(covid_deaths_daily){
   deaths_model[, likelihood := dpois(x = as.numeric(actual_deaths), 
                                      lambda = as.numeric(model_deaths), log=T) ]
   #return the total likelihood
-  if(any(is.nan(deaths_model$likelihood))){browser()}
+#  if(any(is.nan(deaths_model$likelihood))){browser()}
   return(-sum(deaths_model$likelihood, na.rm = T))
 }
 
@@ -125,7 +122,7 @@ run_model_2020 <- function(parameters, init_state_2020){
   # run the model
   parameters$amplitude_covid <- parameters$beta_covid_0 * (parameters$amplitude/
                                                            parameters$beta_other)
-    
+
     outall <- as.data.table(ode(
     y = unlist(init_state_2020),
     t = times_20,
@@ -152,7 +149,7 @@ update_parameters <- function(parameters){
   
   parameters$contacts_reduc <-(((google_mobility_use$rolling_mean/100)) +1)
   parameters$waning_covid <- parameters$waning_other
-  parameters$gamma_covid <- 1/4
+  parameters$gamma_covid <- 1/5
   parameters$incubation_covid <- 1/2.5
   parameters$inf_to_symp_covid = 1/(22/2)
   parameters$reporting_delay_covid = 1/(22/2)
@@ -162,7 +159,7 @@ update_parameters <- function(parameters){
   parameters$covid_deaths[4] =  as.numeric(IFRs_actual[4,"proportion"]) #0.0049,
   parameters$covid_deaths[5] =  as.numeric(IFRs_actual[5,"proportion"]) #0.131,
   
-  parameters$phi <- length_to_run%%364 + parameters$phi
+  parameters$phi <- (run_start_2 - as.Date(lp_15))[[1]]%%364 + parameters$phi
 
   return(parameters)
 }
@@ -179,7 +176,7 @@ update_parameters_specific <- function(test_params, parameters, sigma,
   if(other_way ==T){
     if(sigma_otherway=="same"){
       parameters$sig_I <- convert_sig(sigma)
-    } else  {parameters$sig_I <- convert_sig(sigma_otherway)}
+    } else {parameters$sig_I <- convert_sig(sigma_otherway)}
   }
 
   return(parameters)
@@ -592,13 +589,13 @@ calc_youngest_ages <- function(input, parameters,type="SEIR"){
 
   to_plot <- data.table(
     model = proportions,
-    data = c(0.007,0.038,0.027,0.03,0.077, rep(NA,11)),
+    data = c(0.007,0.038,0.027,0.03,0.077,0.102,0.093,0.093,0.079,0.079,0.078,0.078,0.063,0.063, rep(NA,2)),
     ages = factor(c("0-4", "5-9","10-14", "15-19", "20-24", "25-29", "30-34", "35-39", 
                     "40-44", "45-49", "50-54", "55-59", "60-64" , "65-69", "70-74", "75+"), 
                   levels = c("0-4", "5-9","10-14", "15-19", "20-24", "25-29", "30-34", "35-39", 
                              "40-44", "45-49", "50-54", "55-59", "60-64",  "65-69", "70-74", "75+")),
-    lower = c(0.000,0.002,0.00,0.001,0.018,rep(NA,11)), 
-    upper = c(0.058,0.101,0.077,0.084,0.159,rep(NA,11))
+    lower = c(0.000,0.002,0.00,0.001,0.018,0.08,0.072,0.072,0.059,0.059,0.058,0.058,0.043,0.043,rep(NA,2)), 
+    upper = c(0.058,0.101,0.077,0.084,0.159,0.126,0.113,0.113,0.099,0.099,0.097,0.097,0.082,0.082,rep(NA,2))
   )
   return(to_plot)
 }
