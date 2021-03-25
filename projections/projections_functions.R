@@ -44,7 +44,7 @@ if(seasonal_factor_covid == "yes"){
   reportin_2020 <- summary_stats_reported_proj(output_project, type = "SEIR")
   #out <- summary_groups_both(reportin_2020)
   # deaths <- calculate_deaths(output_project, parameters)
-  return(reportin_2020)
+  return(list(reported = reportin_2020, all_output = output_project))
   
 }
   
