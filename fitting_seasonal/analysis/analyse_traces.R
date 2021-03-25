@@ -78,21 +78,41 @@ ggplot(ggtrace) +
   labs(x = "Parameter value", y = "Density")
 
 dev.off()
+
+ggtrace_sub <- ggtrace[parameter == "waning_duration" | 
+                         parameter == "seasonal_R0" | parameter == "log_liklihood"]
+ggtrace_sub[parameter == "waning_duration", value := value/364]
+ggtrace_sub[parameter == "waning_duration", parameter := "Waning duration (years)"]
+ggtrace_sub[parameter == "seasonal_R0", parameter := "Seasonal HCoV R0"]
+ggtrace_sub[parameter == "log_liklihood", parameter := "Log Likelihood"]
+
+SUB_POSTERIOR <-ggplot(ggtrace_sub) + 
+  geom_density(aes(x = value), fill = "navyblue") + 
+  facet_wrap(parameter~., scales = "free", ncol = 1) + 
+  theme_linedraw() + 
+  theme(axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        strip.background = element_rect(colour="white", fill="white"),
+        strip.text = element_text(colour = 'black',hjust = 0)) + 
+  labs(x = "Parameter value", y = "Density", title = "B") 
+
+
 ######## RBINOM SAMPLING ######
 
 RBINOM <- plot_rbinom(samples = 100, 
                       trace_period = c(1:dim(trace_to_sample)[1]),
                       trace_dt = trace_to_sample,
                       model_type = "SEIR")
+RBINOM + labs(title = "A")
 
 tiff(here("figures","rbinom.tiff"), height = 2000, width = 3200, res = 300)
-RBINOM
+grid.arrange(RBINOM+ labs(title = "A"), SUB_POSTERIOR, ncol = 2, widths = c(3,1))
 dev.off()
 
 ######## QUANTILES ########
-print("R0 quantiles")
-print(quantile(trace_to_sample$waning_duration, probs = c(0.025, 0.5, 0.975))/364)
 print("waning quantiles")
+print(quantile(trace_to_sample$waning_duration, probs = c(0.025, 0.5, 0.975))/364)
+print("R0 quantiles")
 print(quantile(trace_to_sample$seasonal_R0, probs = c(0.025, 0.5, 0.975)))
 print("reporting 1 quantiles")
 print(quantile(trace_to_sample$reporting_rate_1, probs = c(0.025, 0.5, 0.975)))
