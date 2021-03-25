@@ -21,6 +21,7 @@ library(parallel)
 library(doParallel)
 library(coda)
 
+
 #install.packages("RcppCoronaImmunitty_0.1.0.tar.gz",
 #               repos = NULL, type = "source")
 library(RcppCoronaImmunitty)
@@ -67,8 +68,9 @@ source(here("projections", "projections_run.R"))
 ###### EXTRAS #####
 # extra plots
 source(here("figures", "plotting_data.R"))
+source(here("figures", "extra_plots.RDS"))
 # compare fit with Kissler parameters
-file.edit(here("kissler_compariosn.R"))
+file.edit(here("kissler_comparison","kissler_comparison.R"))
 
 
 
