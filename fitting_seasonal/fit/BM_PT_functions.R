@@ -73,7 +73,6 @@ get_llprior <- function(parameter_guesses){
 
 create_parameters <- function(parameter_guesses){
   num_groups <- length(pop_params_base[["age_groups"]])
-
   rep_f_1 <- exp(as.numeric(parameter_guesses["seasonal_reported_1"]))/
     (1+ exp(as.numeric(parameter_guesses["seasonal_reported_1"])))
   rep_f_2 <- exp(as.numeric(parameter_guesses["seasonal_reported_2"]))/
@@ -494,7 +493,6 @@ calc_lik_seasonal_ages_binomial <- function(reportin_2020_daily, parameters,
 
   # weight the off_seasons by half
   lik_summary <- to_match[, sum(likelihood, na.rm = T)]
-  
   lik_out <- lik_summary
   
   if(any(is.nan(to_match$likelihood))){lik_out <- -10000}
@@ -729,8 +727,8 @@ convert_sig <- function(value){
 }
 
 # calculate the percent infected per age group (reporeted)
-infected_year_age <- function(outall, type, year_start){
-  
+infected_year_age <- function(outall, type, year_start, time_frame = 364){
+
   Names <-naming_states(type = type)
   #Calculate the incidence
   colnames(outall) <- Names
@@ -739,25 +737,72 @@ infected_year_age <- function(outall, type, year_start){
   colnames(year_change) = paste0("infected_year_",age_groups)
   
   
-  year_change[,1] <- outall[year_start+364, Other_reported1]- outall[year_start, Other_reported1]
-  year_change[,2] <- outall[year_start+364, Other_reported2]- outall[year_start, Other_reported2]
-  year_change[,3] <- outall[year_start+364, Other_reported3]- outall[year_start, Other_reported3]
-  year_change[,4] <- outall[year_start+364, Other_reported4]- outall[year_start, Other_reported4]
-  year_change[,5] <- outall[year_start+364, Other_reported5]- outall[year_start, Other_reported5]
-  year_change[,6] <- outall[year_start+364, Other_reported6]- outall[year_start, Other_reported6]
-  year_change[,7] <- outall[year_start+364, Other_reported7]- outall[year_start, Other_reported7]
-  year_change[,8] <- outall[year_start+364, Other_reported8]- outall[year_start, Other_reported8]
-  year_change[,9] <- outall[year_start+364, Other_reported9]- outall[year_start, Other_reported9]
-  year_change[,10] <- outall[year_start+364, Other_reported10]- outall[year_start, Other_reported10]
-  year_change[,11] <- outall[year_start+364, Other_reported11]- outall[year_start, Other_reported11]
-  year_change[,12] <- outall[year_start+364, Other_reported12]- outall[year_start, Other_reported12]
-  year_change[,13] <- outall[year_start+364, Other_reported13]- outall[year_start, Other_reported13]
-  year_change[,14] <- outall[year_start+364, Other_reported14]- outall[year_start, Other_reported14]
-  year_change[,15] <- outall[year_start+364, Other_reported15]- outall[year_start, Other_reported15]
-  year_change[,16] <- outall[year_start+364, Other_reported16]- outall[year_start, Other_reported16]
+  year_change[,1] <- outall[year_start+time_frame, Other_reported1]- outall[year_start, Other_reported1]
+  year_change[,2] <- outall[year_start+time_frame, Other_reported2]- outall[year_start, Other_reported2]
+  year_change[,3] <- outall[year_start+time_frame, Other_reported3]- outall[year_start, Other_reported3]
+  year_change[,4] <- outall[year_start+time_frame, Other_reported4]- outall[year_start, Other_reported4]
+  year_change[,5] <- outall[year_start+time_frame, Other_reported5]- outall[year_start, Other_reported5]
+  year_change[,6] <- outall[year_start+time_frame, Other_reported6]- outall[year_start, Other_reported6]
+  year_change[,7] <- outall[year_start+time_frame, Other_reported7]- outall[year_start, Other_reported7]
+  year_change[,8] <- outall[year_start+time_frame, Other_reported8]- outall[year_start, Other_reported8]
+  year_change[,9] <- outall[year_start+time_frame, Other_reported9]- outall[year_start, Other_reported9]
+  year_change[,10] <- outall[year_start+time_frame, Other_reported10]- outall[year_start, Other_reported10]
+  year_change[,11] <- outall[year_start+time_frame, Other_reported11]- outall[year_start, Other_reported11]
+  year_change[,12] <- outall[year_start+time_frame, Other_reported12]- outall[year_start, Other_reported12]
+  year_change[,13] <- outall[year_start+time_frame, Other_reported13]- outall[year_start, Other_reported13]
+  year_change[,14] <- outall[year_start+time_frame, Other_reported14]- outall[year_start, Other_reported14]
+  year_change[,15] <- outall[year_start+time_frame, Other_reported15]- outall[year_start, Other_reported15]
+  year_change[,16] <- outall[year_start+time_frame, Other_reported16]- outall[year_start, Other_reported16]
   # for(test in 1:length(age_groups)){
   #   year_change[,test] <- outall[year_start+364, get(paste0("Other_reported",test))] - 
   #     outall[year_start, get(paste0("Other_reported",test))]
+  # }
+  # 
+  year_change <- data.table(year_change)
+  year_change[, infected_year_p0 := infected_year_0]
+  year_change[, infected_year_p5 := infected_year_5 + infected_year_10]
+  year_change[, infected_year_p15 := infected_year_15 + infected_year_20 + 
+                infected_year_25 + infected_year_30 + infected_year_35 + infected_year_40]
+  year_change[, infected_year_p45 := infected_year_45 + infected_year_50 + 
+                infected_year_55 + infected_year_60]
+  year_change[, infected_year_p65 := infected_year_65 + infected_year_70 + 
+                infected_year_75 ]
+  
+  colnames_wanted <- colnames(year_change)[grep("year_p", colnames(year_change))]
+  
+  return(year_change[,..colnames_wanted])
+  
+}
+
+infected_year_age_covid <- function(outall, type, year_start, time_frame = 364){
+  
+  Names <-naming_states(type = type)
+  #Calculate the incidence
+  colnames(outall) <- Names
+  # calculate the number infected over 364 days by age group
+  year_change <- matrix(nrow=1, ncol = length(age_groups))
+  colnames(year_change) = paste0("infected_year_",age_groups)
+  
+
+  year_change[,1] <- outall[year_start+time_frame, Covid_reported1]- outall[year_start, Covid_reported1]
+  year_change[,2] <- outall[year_start+time_frame, Covid_reported2]- outall[year_start, Covid_reported2]
+  year_change[,3] <- outall[year_start+time_frame, Covid_reported3]- outall[year_start, Covid_reported3]
+  year_change[,4] <- outall[year_start+time_frame, Covid_reported4]- outall[year_start, Covid_reported4]
+  year_change[,5] <- outall[year_start+time_frame, Covid_reported5]- outall[year_start, Covid_reported5]
+  year_change[,6] <- outall[year_start+time_frame, Covid_reported6]- outall[year_start, Covid_reported6]
+  year_change[,7] <- outall[year_start+time_frame, Covid_reported7]- outall[year_start, Covid_reported7]
+  year_change[,8] <- outall[year_start+time_frame, Covid_reported8]- outall[year_start, Covid_reported8]
+  year_change[,9] <- outall[year_start+time_frame, Covid_reported9]- outall[year_start, Covid_reported9]
+  year_change[,10] <- outall[year_start+time_frame, Covid_reported10]- outall[year_start, Covid_reported10]
+  year_change[,11] <- outall[year_start+time_frame, Covid_reported11]- outall[year_start, Covid_reported11]
+  year_change[,12] <- outall[year_start+time_frame, Covid_reported12]- outall[year_start, Covid_reported12]
+  year_change[,13] <- outall[year_start+time_frame, Covid_reported13]- outall[year_start, Covid_reported13]
+  year_change[,14] <- outall[year_start+time_frame, Covid_reported14]- outall[year_start, Covid_reported14]
+  year_change[,15] <- outall[year_start+time_frame, Covid_reported15]- outall[year_start, Covid_reported15]
+  year_change[,16] <- outall[year_start+time_frame, Covid_reported16]- outall[year_start, Covid_reported16]
+  # for(test in 1:length(age_groups)){
+  #   year_change[,test] <- outall[year_start+364, get(paste0("Covid_reported",test))] - 
+  #     outall[year_start, get(paste0("Covid_reported",test))]
   # }
   # 
   year_change <- data.table(year_change)
