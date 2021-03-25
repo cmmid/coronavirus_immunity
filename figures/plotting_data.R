@@ -52,6 +52,7 @@ to_plot <- data.frame(ages = c("0-4", "5-14", "15-44","45-64", "65+"),
                                         tot_sum["OTHER_p15"]/tot_sum["All"],
                                         tot_sum["OTHER_p45"]/tot_sum["All"],
                                         tot_sum["OTHER_p65"]/tot_sum["All"]))
+to_plot$ages <- factor(to_plot$ages, levels =c("0-4", "5-14", "15-44","45-64", "65+") )
 # create the age hcov plot
 HCOV_AGES <- ggplot(to_plot, aes(x = ages, y = percent_cases )) + 
   geom_bar(stat="identity", fill= "navyblue") +
