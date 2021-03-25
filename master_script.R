@@ -20,6 +20,8 @@ library(here)
 library(parallel)
 library(doParallel)
 library(coda)
+library(viridis)
+
 
 ## This is the package that contains the actual model code. It's in a package 
 # for convenience when running on a cluster.
