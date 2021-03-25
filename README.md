@@ -5,7 +5,7 @@
 
 All the fitting, analysis and figure generation can be run from "master_script.R". This loads in all the dependencies and functions. It has to be run in the order specified. All the code and data (which is publically available) are in the repo, and can be run directly from the master script. However please note that some elements (particularly the fitting) is time-consuming. The fitted traces are included in the repo, so that further analysis can be followed without having to run the whole fitting mechanism. 
 
-Note that the main model code is stored within a package  ( RcppCoronaImmunity_0.1.0.tar.gz) for convienience of use on HPCs. 
+Note that the main model code is stored within a package (RcppCoronaImmunity_0.1.0.tar.gz) for convienience of use on HPCs. 
 
 © 2021 Naomi R Waterlow, Edwin Van Leewen, Stefan Flasche, Rosalind M Eggo
 
@@ -30,6 +30,7 @@ rootSolve_1.8.2.1
 deSolve_1.28
 MASS_7.3-51.6
 data.table_1.13.4
+viridis_0.5.1 
 forcats_0.5.0
 
 
