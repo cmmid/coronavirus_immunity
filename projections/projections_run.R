@@ -20,7 +20,7 @@ storage2 <- data.frame()
 
 seasonal_factor_covid <- "yes" # "yes" or "no
 # 1. get the sample 
-for(i in 1:1#n_samples
+for(i in 1:10#n_samples
 ){
 projections_both <- data.frame()
 
@@ -50,31 +50,29 @@ for(sigma_otherway in c(0,"same")){
                                           sigma = interaction_param, 
                                           init_state_2020 = seasonal_out["init_state_2020"])
       
-      for(year_time in year_times){
-      age_inf <- infected_year_age(projections_out$all_output, type = "SEIR", 
-                              year_start = year_time, time_frame = 364)
-      tot <-calc_pop_per_age(projections_out$all_output, timepoint = year_time, "SEIR")
-      storage_temp1 <- data.frame(age_inf/tot$V1)
-      storage_temp1$time_start = year_time
-      storage_temp1$sigma = sig
-      storage_temp1$type = sigma_otherway
-      storage <- rbind(storage, storage_temp1)
-      if (year_time == 406){print(age_inf)}
-    
-      age_inf <- infected_year_age(projections_out$all_output, type = "SEIR",
-                                   year_start = year_time, time_frame = 364)
-      tot <- sum(age_inf)
-      storage_temp2 <- data.frame(age_inf/tot)
-      storage_temp2$time_start = year_time
-      storage_temp2$sigma = sig
-      storage_temp2$type = sigma_otherway
-      storage2 <- rbind(storage2, storage_temp2)
-      }
+      # for(year_time in year_times){
+      # age_inf <- infected_year_age(projections_out$all_output, type = "SEIR", 
+      #                         year_start = year_time, time_frame = 364)
+      # tot <-calc_pop_per_age(projections_out$all_output, timepoint = year_time, "SEIR")
+      # storage_temp1 <- data.frame(age_inf/tot$V1)
+      # storage_temp1$time_start = year_time
+      # storage_temp1$sigma = sig
+      # storage_temp1$type = sigma_otherway
+      # storage <- rbind(storage, storage_temp1)
+      # 
+      # age_inf <- infected_year_age(projections_out$all_output, type = "SEIR",
+      #                              year_start = year_time, time_frame = 364)
+      # tot <- sum(age_inf)
+      # storage_temp2 <- data.frame(age_inf/tot)
+      # storage_temp2$time_start = year_time
+      # storage_temp2$sigma = sig
+      # storage_temp2$type = sigma_otherway
+      # storage2 <- rbind(storage2, storage_temp2)
+      # }
       
      projections <- projections_out$reported
       projections$sample <- sample_num
       projections$inter <- sig
-      
       projections_all <- rbind(projections_all, projections)
     }
 
@@ -130,8 +128,8 @@ PROJ_all <- ggplot(projections_both_m[scale ==1], aes(x = date, y=value,
          strip.placement = "outside",
          legend.position = "bottom")+
   scale_x_date(date_breaks = "2 year", date_labels = "%Y") +
-  labs(colour = "Virus") +
-  geom_vline(xintercept = as.Date(year_times, origin = run_start_2), colour = "black")
+  labs(colour = "Virus") #+
+#  geom_vline(xintercept = as.Date(year_times, origin = run_start_2), colour = "black")
 PROJ_all
 
 dummy_table <- data.frame(inter = c(0,0.2,0.4,0.6,0.8,1), 
