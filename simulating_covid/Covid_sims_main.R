@@ -176,7 +176,6 @@ sero[ages == "0-4" | ages == "5-9" | ages == "10-14" |
 sero$source <- as.factor(sero$source)
 SERO_PLOT <- ggplot(sero, aes(x= ages)) + 
   # geom_errorbar(aes(y=data, ymin=lower, ymax=upper)) +
-  geom_point(aes(y=data,shape = source  ))+
   scale_colour_manual(values=cc) +
   geom_segment(data = sero,aes(x=ages, 
                                             xend=ages, 
@@ -188,26 +187,30 @@ SERO_PLOT <- ggplot(sero, aes(x= ages)) +
   theme_linedraw() + 
   lims(y = c(0,0.2)) +
   geom_point(aes(y=model, colour = interaction, group = sample), alpha=0.8) + 
-  coord_flip() + 
   theme(legend.position = "bottom") + 
   guides(shape = guide_legend(override.aes = list(size = 1.5)))+
 guides(color = guide_legend(override.aes = list(size = 1.5)))+
   theme(legend.title = element_text(size = 8), 
         legend.text = element_text(size = 8))+ 
-   theme( legend.margin=margin(0,0,0,0),
+   theme( legend.margin=margin(0.5,0.5,0.5,0.5),
           legend.box.margin=margin(-10,-10,-10,-10),
-          legend.box.just = "center") 
-
+          legend.box.just = "center", 
+          legend.box = "horizontal",
+          legend.position = c(0.8, 0.75),
+          legend.key.height = unit(0.3, "cm")) +
+  geom_line(aes(x = ages, y = model, group = interaction(interaction,sample), colour = interaction)) +
+  geom_point(aes(y=data,shape = source  ))
   
 # plot the combined plots
 tiff(here("figures","covid_sims.tiff"), height = 2000, width = 3200, res = 300)
 
-grid.arrange(FIT_PLOT, SERO_PLOT, R0, layout_matrix = rbind(c(1,2), 
-                                                            c(1,2),
-                                                            c(1,2),
-                                                            c(1,2), 
-                                                            c(1,3),
-                                                            c(1,3)))
+grid.arrange(FIT_PLOT, SERO_PLOT, R0, layout_matrix = rbind(c(1,1,2,2,2), 
+                                                            c(1,1,2,2,2),
+                                                            c(1,1,2,2,2),
+                                                            c(1,1,2,2,2), 
+                                                            c(1,1,3,3,3), 
+                                                            c(1,1,3,3,3),
+                                                            c(1,1,3,3,3)))
 dev.off()
 
 

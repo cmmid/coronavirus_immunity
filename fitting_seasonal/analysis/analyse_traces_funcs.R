@@ -180,5 +180,40 @@ plot_rbinom <- function(samples,
 
 
 
+attack_rate<- function(samples, 
+                       trace_period,
+                       trace_dt, 
+                       model_type){
+  samples_to_take <- samples
+  reporting_store <- data.frame()
+  
+  for(i in 1:samples_to_take){
+    for(j in c(1:5)){
+      
+      # or manually write them
+      sample_num <- sample(trace_period, size=1)
+      params_in <- unlist(trace_dt[sample_num,])
+      init_theta <- params_in[2:9]
+      #run the model up unitl likelihood point
+      parameters <- create_parameters(unlist(init_theta))
+      # Run the model - seasonal corona only. For 20 years + a bit, to find low point (lp)
+      output_s <- run_model_seasonal(parameters, model_type)
+      colnames(output_s) <- naming_states(model_type)
+      
+      population <- calc_pop_per_age(output_s,timepoint=(length_to_run -(j*364)), model_type)
+      population$inf_year_age <- c(infected_year_age(output_s, model_type,
+                                                     year_start  = length_to_run-364))
+      population[,percent := as.numeric(inf_year_age)/V1*100]
+      population$percent
+      reporting_store <- rbind(  reporting_store, c(population$percent,sample_num,j))
+    }}
+  reporting_store <- data.table(reporting_store)
+  colnames(reporting_store)<- c("Age1", "Age2", "Age3", "Age4", "Age5", "sample", "year")
+  reporting_store_m <- melt.data.table(reporting_store, id.vars= c("sample"))
+  reporting_store_m[,mean(value), by = variable]
+  
+  return(reporting_store_m[,mean(value), by = variable])
+  
+}
 
 

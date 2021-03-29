@@ -10,7 +10,7 @@
 get_log_posterior_no_covid <- function(theta, bb = "no", model_type){
   
   ll <- run_model_get_logliks_seasonalonly(parameter_guesses = theta, bb, model_type)
-  print(ll)
+
 #   prior <- get_llprior(parameter_guesses = theta) 
   log_posterior <- ll #+ prior
   return(log_posterior)
