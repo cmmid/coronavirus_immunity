@@ -25,8 +25,8 @@ library(viridis)
 
 ## This is the package that contains the actual model code. It's in a package 
 # for convenience when running on a cluster.
-#install.packages("RcppCoronaImmunitty_0.1.0.tar.gz",
-#               repos = NULL, type = "source")
+install.packages("RcppCoronaImmunitty_0.1.0.tar.gz",
+               repos = NULL, type = "source")
 library(RcppCoronaImmunitty)
 
 # load in the functions and parameters for fitting
