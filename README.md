@@ -4,7 +4,7 @@ This repository contains the code for the paper: Duration of immunity to seasona
 
 All the fitting, analysis and figure generation can be run from "master_script.R". This loads in all the dependencies and functions. It has to be run in the order specified, and opens any files where manual edits can be made (e.g. number of simulations to run). All the code and data (which is publically available) are in the repo, and can be run directly from the master script. However please note that some elements (particularly the fitting) is time-consuming. The fitted traces are included in the repo, so that further analysis can be followed without having to run the whole fitting mechanism. 
 
-Note that the main model code is stored within a package (RcppCoronaImmunity_0.1.0.tar.gz) for convienience of use on HPCs. The package will be loaded through a call in master_script.R, so that the functions are available within R. 
+Note that the main model code is stored within a package (RcppCoronaImmunity_0.1.0.tar.gz) for convienience of use on HPCs. The package will be loaded through a call in master_script.R, so that the functions are available within R. The model scripts for reference are in the reference_models folder.
 
 Authors: Naomi R Waterlow, Edwin Van Leewen, Nick Davies, Stefan Flasche, Rosalind M Eggo
 See LICENSE file for licensing details.
