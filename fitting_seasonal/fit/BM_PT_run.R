@@ -11,7 +11,7 @@
 cores_to_use <- detectCores()
 cl <- parallel::makeCluster(cores_to_use, setup_strategy = "sequential")
 registerDoParallel(cl)
-
+array_num <- 1
 # setup the initial conditions
 
 lower_bounds <- c(waning_day = 100, 
@@ -51,7 +51,7 @@ Temperatures <- c(1,2,3,6.5,12,25,50,70,100,200,300,400,500,600,800,1000)
 n_chains <- 16
 
 
-covmat <- as.matrix(read.csv("covmat_3.csv", row.names = 1))/2
+covmat <- as.matrix(read.csv(here::here("fitting_seasonal/fit","covmat_3.csv"), row.names = 1))/2
 rownames(covmat) <- colnames(covmat) <- names(init_theta)
 proposal_sd <- diag(covmat)
 

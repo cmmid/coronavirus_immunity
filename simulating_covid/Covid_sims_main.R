@@ -176,7 +176,7 @@ R0
 
 # create the serology plot  
 sero$interaction <- as.factor(sero$interaction)
-sero$ages <- forcats::fct_rev(sero$ages)
+#sero$ages <- forcats::fct_rev(sero$ages)
 # sero[, source := 2]
 # sero[ages == "0-4" | ages == "5-9" | ages == "10-14" |
 #        ages == "15-19" | ages == "20-24", source := 1]

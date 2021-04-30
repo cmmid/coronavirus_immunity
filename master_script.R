@@ -30,8 +30,7 @@ install.packages("RcppCoronaImmunitty_0.1.0.tar.gz",
 library(RcppCoronaImmunitty)
 # source("compiler_function.R")
 # compileModel("SEIR_compilation.cpp", "build")
-
-dyn.load("build/SEIR_compilation.so")
+# dyn.load("build/SEIR_compilation.so")
 
 # load in the functions and parameters for fitting
 source(here("fitting_seasonal/fit", "BM_PT_functions.R"))
