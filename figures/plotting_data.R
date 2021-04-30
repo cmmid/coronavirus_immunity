@@ -15,7 +15,7 @@ seasonal_hold <- seasonal_15_20[,c("variable", "year_week", "value")]
 seasonal_hold <- dcast.data.table(seasonal_hold, formula = year_week ~ variable )
 seasonal_hold[, All := OTHER_p0 + OTHER_p5 + OTHER_p15 + OTHER_p45 + OTHER_p45 + OTHER_p65]
 seasonal_to_plot <- seasonal_hold[,c("year_week", "All")]
-seasonal_to_plot$type <- "Seasonal"
+seasonal_to_plot$type <- "Monthly seasonal HCoV reports"
 
 # what ratio between the two different scales
 comp_coef <- 1
@@ -23,7 +23,7 @@ comp_coef <- 1
 combine_deaths <- data.frame(
   year_week = deaths_covid$date,
   All = deaths_covid$actual_deaths /comp_coef, 
-  type = "Covid"
+  type = "Daily Covid19 deaths"
 )
 
 # combine the data
@@ -35,13 +35,12 @@ TIMESERIES <- ggplot(empty_plot, aes(x=x)) +
   geom_line(data = together, aes(x = year_week, y = All, colour = type)) + 
   theme_linedraw() + 
   scale_colour_manual(values = c("orangered2","navyblue" ))+
-  scale_y_continuous( name = "Monthly seasonal HCoV reports", 
-                      sec.axis = sec_axis(~./comp_coef, name = "Daily Covid19 deaths"))+
+   scale_y_continuous(breaks = seq(0,1400,by = 200))+
   theme(
-    axis.title.y = element_text(color = "navyblue", size=13),
+    axis.title.y = element_text(color = "black", size=13),
     axis.title.y.right = element_text(color = "orangered2", size=13),
-    legend.position = "none")  + 
-  labs(x = "Date", title = "A")
+    legend.position = c(0.2, 0.75))  + 
+  labs(x = "Date", title = "A", colour = "Time Series", y = "Count")
 
 # calculate proportion in each age group
 tot <- seasonal_hold[,-1]
@@ -57,7 +56,7 @@ to_plot$ages <- factor(to_plot$ages, levels =c("0-4", "5-14", "15-44","45-64", "
 HCOV_AGES <- ggplot(to_plot, aes(x = ages, y = percent_cases )) + 
   geom_bar(stat="identity", fill= "navyblue") +
   theme_linedraw() + 
-  labs(x = "Age group", y = "Proportion of cases", title = "B")
+  labs(x = "Age group", y = "Proportion of seasonal HCoV cases", title = "B")
 
 # add the death data
 to_plot_covid <- data.table(
@@ -70,12 +69,12 @@ to_plot_covid <- data.table(
   upper = c(0.058,0.101,0.077,0.084,0.159,rep(NA,11))
 )
 
-# make the death covid plot
-COVID_AGES <- ggplot(na.omit(to_plot_covid), aes(x = ages, y= data) ) + 
-  geom_pointrange(aes(ymin = lower, ymax = upper), colour="orangered2") +
-  theme_linedraw() + 
-  labs(y = "Proportion positive", x = "Age groups",
-       title = "D")
+# # make the death covid plot
+# COVID_AGES <- ggplot(na.omit(to_plot_covid), aes(x = ages, y= data) ) + 
+#   geom_pointrange(aes(ymin = lower, ymax = upper), colour="orangered2") +
+#   theme_linedraw() + 
+#   labs(y = "Proportion positive for SARS-CoV-2 Antibodies", x = "Age groups",
+#        title = "D")
 
 #make the empty plot (for adding in model)
 EMPTY <- ggplot() +
@@ -84,7 +83,7 @@ EMPTY <- ggplot() +
 # save the combined plot
 tiff(here("figures","intro.tiff"), height = 2000, width = 3200, res = 300)
 
-grid.arrange(TIMESERIES, EMPTY, HCOV_AGES, COVID_AGES, layout_matrix = rbind(c(1,1,3), 
-                                                                      c(2,2,4)))
+grid.arrange(TIMESERIES, HCOV_AGES, EMPTY, layout_matrix = rbind(c(1,1,1), 
+                                                                      c(2,3,3)))
 dev.off()
              

@@ -4,6 +4,7 @@
 # Date: 2021-04-25
 ################################################################################
 setwd("~/Documents/GitHub/coronavirus_immunity/")
+library(here)
 # Overall setup script
 
 ####### LOAD THE INITIAL REQUIREMENTS ######
@@ -16,7 +17,6 @@ library(Rcpp)
 library(tmvtnorm)
 library(ggplot2)
 library(gridExtra)
-library(here)
 library(parallel)
 library(doParallel)
 library(coda)
@@ -28,6 +28,10 @@ library(viridis)
 install.packages("RcppCoronaImmunitty_0.1.0.tar.gz",
                repos = NULL, type = "source")
 library(RcppCoronaImmunitty)
+# source("compiler_function.R")
+# compileModel("SEIR_compilation.cpp", "build")
+
+dyn.load("build/SEIR_compilation.so")
 
 # load in the functions and parameters for fitting
 source(here("fitting_seasonal/fit", "BM_PT_functions.R"))
@@ -51,6 +55,9 @@ source(here("fitting_seasonal/analysis", "analyse_traces_funcs.R"))
 source(here("fitting_seasonal/analysis", "analyse_traces.R"))
 
 ######## COVID SIMULATIONS ######
+
+# compileModel("SEIR_lockdownn_compilation.cpp", "build")
+# dyn.load("build/SEIR_lockdownn_compilation.so")
 
 source(here("simulating_covid", "covid_sims_data.R"))
 source(here("simulating_covid", "covid_sims_functions.R"))

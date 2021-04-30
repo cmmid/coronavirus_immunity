@@ -80,11 +80,13 @@ ggplot(ggtrace) +
 dev.off()
 
 ggtrace_sub <- ggtrace[parameter == "waning_duration" | 
-                         parameter == "seasonal_R0" | parameter == "log_liklihood"]
+                         parameter == "seasonal_R0"# | parameter == "log_liklihood"
+                       ]
 ggtrace_sub[parameter == "waning_duration", value := value/364]
 ggtrace_sub[parameter == "waning_duration", parameter := "Waning duration (years)"]
 ggtrace_sub[parameter == "seasonal_R0", parameter := "Seasonal HCoV R0"]
-ggtrace_sub[parameter == "log_liklihood", parameter := "Log Posterior"]
+#ggtrace_sub[parameter == "log_liklihood", parameter := "Deviance"]
+#ggtrace_sub[parameter == "Deviance", value := -2*value]
 
 SUB_POSTERIOR <-ggplot(ggtrace_sub) + 
   geom_density(aes(x = value), fill = "navyblue") + 
@@ -97,6 +99,23 @@ SUB_POSTERIOR <-ggplot(ggtrace_sub) +
   labs(x = "Parameter value", y = "Density", title = "B")  + 
   theme(plot.margin = margin(t = 0.5, b = 0.5,r = 0.5, unit = "cm"))
 
+####### ATTACK RATES #######
+
+attack_rates <- attack_rate(100, trace_period = 1:nrow(trace_to_sample),
+                            trace_dt = trace_to_sample, model_type = "SEIR")[1:5,]
+attack_rates[variable == "Age1", variable := "Age 0-4"]
+attack_rates[variable == "Age2", variable := "Age 5-14"]
+attack_rates[variable == "Age3", variable := "Age 15-44"]
+attack_rates[variable == "Age4", variable := "Age 45-64"]
+attack_rates[variable == "Age5", variable := "Age 65+"]
+
+
+AR <- ggplot(attack_rates, aes(x = variable, y = V1)) + 
+  geom_bar(stat = "identity", fill = "navyblue") + 
+  theme_linedraw() + 
+  theme(axis.title.x = element_blank(), 
+        plot.margin = margin(t=0,r=10,b=2,l=2))+
+  labs( y = "Annual Attack Rate (%)", title = "C")
 
 ######## RBINOM SAMPLING ######
 
@@ -107,8 +126,14 @@ RBINOM <- plot_rbinom(samples = 100,
 RBINOM + labs(title = "A")
 
 tiff(here("figures","rbinom.tiff"), height = 2000, width = 3200, res = 300)
-grid.arrange(RBINOM+ labs(title = "A"), SUB_POSTERIOR, ncol = 2, widths = c(6,3))
+grid.arrange(RBINOM+ labs(title = "A"), SUB_POSTERIOR,AR,
+             layout_matrix =rbind(c(1,1,2), c(1,1,2),c(1,1,3)))
 dev.off()
+
+
+###### CREDIBLE INTERVALS ######
+
+LaplacesDemon::p.interval(trace_to_sample)
 
 ######## QUANTILES ########
 print("waning quantiles")
@@ -128,7 +153,7 @@ print(quantile(trace_to_sample$seasonal_amplitude, probs = c(0.025, 0.5, 0.975))
 print("seasonal timing quantiles")
 print(quantile(trace_to_sample$seasonal_timing, probs = c(0.025, 0.5, 0.975)))
 
-# percentage change in amplitude
+# percentage change in amplitud
 
 print(paste0("amplitude as proportion of R0 is ",
              unname(quantile(trace_to_sample$seasonal_amplitude, probs = 0.5)/ 
@@ -136,5 +161,3 @@ print(paste0("amplitude as proportion of R0 is ",
              )
       )
 
-# Annual attack rate
- attack_rate(100, trace_period = 1:nrow(trace_to_sample), trace_dt = trace_to_sample, model_type = "SEIR")

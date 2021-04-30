@@ -11,13 +11,13 @@ length_to_run_2 <- (run_end - run_start_2)[[1]] #total days to run
 mobility_date <- "2020-02-21" # date teh google mobility data starts
 covid_date <- as.Date("2020-02-10") # date that covid is first introduced
 covid_change_time <- as.Date("2020-03-23") #date of lockdown (i.e. schools closing)
-serology_time <- as.Date("2020-05-31") # time point of seology. CHECK
-#trace from which to take samples. Should already be formated appropiately. 
+serology_time <- as.Date("2020-05-31") # time point of seology.
+#trace from which to take samples. Should already be formated appropiately.
 load(here("fitting_seasonal/analysis", "trace_to_sample.Rdata"))
 # change to correct names and reporting as log odds
-colnames(trace_to_sample) <- c("ll","waning_day", "seasonal_R0", "seasonal_reported_1", 
-                                 "seasonal_reported_2", "seasonal_reported_3", 
-                                 "seasonal_reported_5", "seasonal_amplitude", 
+colnames(trace_to_sample) <- c("ll","waning_day", "seasonal_R0", "seasonal_reported_1",
+                                 "seasonal_reported_2", "seasonal_reported_3",
+                                 "seasonal_reported_5", "seasonal_amplitude",
                                  "phi", "step")
 trace_to_sample$seasonal_reported_1 <- log(trace_to_sample$seasonal_reported_1/(1-trace_to_sample$seasonal_reported_1))
 trace_to_sample$seasonal_reported_2 <- log(trace_to_sample$seasonal_reported_2/(1-trace_to_sample$seasonal_reported_2))
@@ -32,10 +32,11 @@ r_effs <- data.table()
 sero <- data.table()
 transmission <- data.table()
 introductions <- data.table()
+ll_values <- data.table()
 
 sig_list <- c(0,0.2,0.4,0.6,0.8,1)
 
-n_samples <- 100
+n_samples <- 2
 samples_to_take <- sample(x=1:dim(trace_to_sample)[1],size=n_samples,replace = T)
 
 for(i in 1:n_samples){
@@ -56,7 +57,7 @@ for(i in 1:n_samples){
                               fn = optimise_ll_deaths, 
                               method = "L-BFGS-B",#"Brent", #
                               lower = c(0.01,0.1), 
-                              upper = c(0.55,10),
+                              upper = c(0.6,10),
                               parameters_2020 = parameters_2020, 
                               sigma = interaction_param,
                               init_state_2020 = seasonal_out["init_state_2020"])
@@ -72,6 +73,10 @@ for(i in 1:n_samples){
     
    
     # store the death output with the output from other samples
+    temp_ll_values <- data.frame(transmission_fit$value, sample_num, interaction_param)
+    
+    ll_values <- rbind(ll_values, temp_ll_values)
+    
     temp_deaths <- output_list$model_deaths
     temp_deaths$sample <- sample_num
     temp_deaths$interaction <- interaction_param
@@ -156,13 +161,15 @@ r_0s_summary$Protection <- as.factor(r_0s_summary$Protection)
 #   theme(legend.position = "none")
 
 r_0s$interaction <- forcats::fct_rev(as.factor(r_0s$interaction))
-
 R0 <- ggplot(r_0s, aes(x = interaction, y = r_0, colour = interaction)) + 
   geom_jitter() + 
   theme_linedraw() + 
   scale_colour_manual(values=rev(cc))+
-  labs(x = "Cross-protection", y = "R0", title = "C") +
-  theme(legend.position = "none") + 
+  scale_y_continuous(breaks = seq(0,30,by=5))+
+  labs(x = "Cross-protection", y = "R0", title = "B") +
+  theme(legend.position = "none", 
+        axis.text.x = element_text(size =12), 
+        plot.margin = margin(t = 3,r=2,b= 0, l=2, unit = "pt")) + 
   coord_flip()
 
 R0
@@ -170,25 +177,21 @@ R0
 # create the serology plot  
 sero$interaction <- as.factor(sero$interaction)
 sero$ages <- forcats::fct_rev(sero$ages)
-sero[, source := 2]
-sero[ages == "0-4" | ages == "5-9" | ages == "10-14" |
-       ages == "15-19" | ages == "20-24", source := 1]
-sero$source <- as.factor(sero$source)
+# sero[, source := 2]
+# sero[ages == "0-4" | ages == "5-9" | ages == "10-14" |
+#        ages == "15-19" | ages == "20-24", source := 1]
+# sero$source <- as.factor(sero$source)
+# dup_point <- data.frame(x = "20-24", y = 0.102)
 SERO_PLOT <- ggplot(sero, aes(x= ages)) + 
   # geom_errorbar(aes(y=data, ymin=lower, ymax=upper)) +
   scale_colour_manual(values=cc) +
-  geom_segment(data = sero,aes(x=ages, 
-                                            xend=ages, 
-                                            y=lower, 
-                                            yend=upper),
-               size=0.5) + 
-  labs(y = "Proportion positive", title = "B", x = "Age group", colour = "Cross-protection",
+  labs(y = "Proportion positive", title = "C", x = "Age group", colour = "Cross-protection",
        shape = "Source")+ 
   theme_linedraw() + 
   lims(y = c(0,0.2)) +
   geom_point(aes(y=model, colour = interaction, group = sample), alpha=0.8) + 
   theme(legend.position = "bottom") + 
-  guides(shape = guide_legend(override.aes = list(size = 1.5)))+
+  guides(shape = guide_legend(override.aes = list(size = 0.5)))+
 guides(color = guide_legend(override.aes = list(size = 1.5)))+
   theme(legend.title = element_text(size = 8), 
         legend.text = element_text(size = 8))+ 
@@ -198,16 +201,21 @@ guides(color = guide_legend(override.aes = list(size = 1.5)))+
           legend.box = "horizontal",
           legend.position = c(0.8, 0.75),
           legend.key.height = unit(0.3, "cm")) +
-  geom_line(aes(x = ages, y = model, group = interaction(interaction,sample), colour = interaction)) +
-  geom_point(aes(y=data,shape = source  ))
+  geom_line(aes(x = ages, y = model, group = interaction(interaction,sample), colour = interaction))# +
+  # geom_pointrange(data = sero_out, aes(x = age_group, y = mean,ymin = lower, ymax=upper, 
+  #                                              group = source, shape = source),
+  #                 position=position_dodge(width=c(0.4))) +
+  # scale_shape_manual(values=1:7)
+ # geom_point(aes(y=data,shape = source), size=3)# +
+#  geom_point(data = dup_point, aes(x = x, y = y), shape = "triangle", size = 3)
   
 # plot the combined plots
 tiff(here("figures","covid_sims.tiff"), height = 2000, width = 3200, res = 300)
 
-grid.arrange(FIT_PLOT, SERO_PLOT, R0, layout_matrix = rbind(c(1,1,2,2,2), 
+grid.arrange(FIT_PLOT,  R0,SERO_PLOT, layout_matrix = rbind(c(1,1,2,2,2), 
                                                             c(1,1,2,2,2),
                                                             c(1,1,2,2,2),
-                                                            c(1,1,2,2,2), 
+                                                            c(1,1,3,3,3), 
                                                             c(1,1,3,3,3), 
                                                             c(1,1,3,3,3),
                                                             c(1,1,3,3,3)))

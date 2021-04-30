@@ -149,13 +149,16 @@ plot_rbinom <- function(samples,
     reporting_store <- rbind(reporting_store, reportin_seasonal)
     print(i)
   }
+  
+  reporting_store$year_week <- as.Date(reporting_store$year_week)
+  seasonal_15_20$year_week <- as.Date(seasonal_15_20$year_week)
   reporting_store[seasonal_15_20, on = c("year_week", "variable"), true_value:= i.value ]
 
-  reporting_store <- rbind(reporting_store,data.frame("2017-04-03", "OTHER_p5", NA, NA, NA ,NA), use.names=F)
-  reporting_store <- rbind(reporting_store,data.frame("2017-04-03", "OTHER_p15", NA, NA, NA ,NA), use.names=F)
-  reporting_store <- rbind(reporting_store,data.frame("2017-04-03", "OTHER_p45", NA, NA, NA ,NA), use.names=F)
-  reporting_store <- rbind(reporting_store,data.frame("2017-04-03", "OTHER_p65", NA, NA, NA ,NA), use.names=F)
-  reporting_store <- rbind(reporting_store,data.frame("2017-04-03", "OTHER_p0", NA, NA, NA ,NA), use.names=F)
+  reporting_store <- rbind(reporting_store,data.frame(as.Date("2017-04-03"), "OTHER_p5", NA, NA, NA ,NA), use.names=F)
+  reporting_store <- rbind(reporting_store,data.frame(as.Date("2017-04-03"), "OTHER_p15", NA, NA, NA ,NA), use.names=F)
+  reporting_store <- rbind(reporting_store,data.frame(as.Date("2017-04-03"), "OTHER_p45", NA, NA, NA ,NA), use.names=F)
+  reporting_store <- rbind(reporting_store,data.frame(as.Date("2017-04-03"), "OTHER_p65", NA, NA, NA ,NA), use.names=F)
+  reporting_store <- rbind(reporting_store,data.frame(as.Date("2017-04-03"), "OTHER_p0", NA, NA, NA ,NA), use.names=F)
   reporting_store$variance_indicator<- as.factor(reporting_store$variance_indicator)
   
   reporting_store[variable == "OTHER_p0", nice_label := "Age 0 - 4"]
@@ -163,6 +166,9 @@ plot_rbinom <- function(samples,
   reporting_store[variable == "OTHER_p15", nice_label := "Age 15 - 44"]
   reporting_store[variable == "OTHER_p45", nice_label := "Age 45 - 64"]
   reporting_store[variable == "OTHER_p65", nice_label := "Age 65 +"]
+  reporting_store$nice_label <- factor(reporting_store$nice_label, 
+                                     levels = c("Age 0 - 4","Age 5 - 14",
+                                     "Age 15 - 44","Age 45 - 64","Age 65 +"))
 
   reporting_store$year_week <- as.Date(reporting_store$year_week)
   RBINOM <- ggplot(reporting_store, aes(x = year_week, y = rbb),) + 
@@ -189,7 +195,6 @@ attack_rate<- function(samples,
   
   for(i in 1:samples_to_take){
     for(j in c(1:5)){
-      
       # or manually write them
       sample_num <- sample(trace_period, size=1)
       params_in <- unlist(trace_dt[sample_num,])
