@@ -6,7 +6,8 @@ All the fitting, analysis and figure generation can be run from "master_script.R
 
 Note that the main model code is stored within a package (RcppCoronaImmunity_0.1.0.tar.gz) for convienience of use on HPCs. The package will be loaded through a call in master_script.R, so that the functions are available within R. 
 
-© 2021 Naomi R Waterlow, Edwin Van Leewen, Nick Davies, Stefan Flasche, Rosalind M Eggo
+Authors: Naomi R Waterlow, Edwin Van Leewen, Nick Davies, Stefan Flasche, Rosalind M Eggo
+See LICENSE file for licensing details.
 
 Corresponding author: Naomi R Waterlow, naomi.waterlow1@lshtm.ac.uk
 
