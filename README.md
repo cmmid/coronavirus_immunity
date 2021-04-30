@@ -23,6 +23,8 @@ Input/Output files - see paper for references:
 
 Package versions are: 
 
+To install the correct versions of the packages, you can use the install_packages.R script.
+
 coda_0.19-3
 doParallel_1.0.15
 iterators_1.0.12
