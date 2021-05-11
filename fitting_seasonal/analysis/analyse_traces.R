@@ -153,8 +153,14 @@ print(quantile(trace_to_sample$seasonal_amplitude, probs = c(0.025, 0.5, 0.975))
 print("seasonal timing quantiles")
 print(quantile(trace_to_sample$seasonal_timing, probs = c(0.025, 0.5, 0.975)))
 
-# percentage change in amplitud
+####### EXPONENTIAL RATEES######
+print("median reinfection time (years)")
+qexp(p =0.5, rate =c( 1/(quantile(trace_to_sample$waning_duration, probs = c(0.025, 0.5, 0.975))/364)))
+print("% reinfected in 1 year")
+pexp(q = 1, rate =c( 1/(quantile(trace_to_sample$waning_duration, probs = c(0.025, 0.5, 0.975))/364)))
 
+
+# percentage change in amplitud
 print(paste0("amplitude as proportion of R0 is ",
              unname(quantile(trace_to_sample$seasonal_amplitude, probs = 0.5)/ 
                quantile(trace_to_sample$seasonal_R0, probs = 0.5))

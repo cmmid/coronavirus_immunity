@@ -86,4 +86,28 @@ tiff(here("figures","intro.tiff"), height = 2000, width = 3200, res = 300)
 grid.arrange(TIMESERIES, HCOV_AGES, EMPTY, layout_matrix = rbind(c(1,1,1), 
                                                                       c(2,3,3)))
 dev.off()
+
+
+
+seasonal_hold[,All := NULL]
+seasonal_hold <- na.omit(seasonal_hold)
+sh_m <- melt.data.table(seasonal_hold, id.vars = c("year_week"))
+sh_m[variable == "OTHER_p0", variable:= "Age 0 - 4"]
+sh_m[variable == "OTHER_p5", variable:= "Age 5 - 14"]
+sh_m[variable == "OTHER_p15", variable:= "Age 15 - 44"]
+sh_m[variable == "OTHER_p45", variable:= "Age 45 - 64"]
+sh_m[variable == "OTHER_p65", variable:= "Age Age 65+"]
+
+tiff(here("figures","S_data.tiff"), height = 2000, width = 3200, res = 300)
+
+ggplot(sh_m, aes( x = year_week, y = value)) + 
+  labs(x = "Date", y = "Reported Seasonal Coronavirus Infections") +
+  geom_line() + 
+  facet_grid(variable~.) +
+  theme_linedraw() +
+  scale_x_date(breaks =c(as.Date("2015-01-01"),as.Date("2016-01-01"),
+                         as.Date("2017-01-01"),as.Date("2018-01-01"),
+                         as.Date("2019-01-01"),as.Date("2020-01-01")),
+               labels = c("2015","2016","2017","2018","2019","2020"))
              
+dev.off()

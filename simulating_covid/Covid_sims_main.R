@@ -159,24 +159,33 @@ r_0s_summary$Protection <- as.factor(r_0s_summary$Protection)
 #   geom_errorbar(aes(ymin = Minimum_R0, ymax = Maximum_R0))+
 #   labs(x = "Cross-protection", y = "Mean R0", title = "C") + 
 #   theme(legend.position = "none")
+# create the r_effective plot
+colnames(r_effs) <- c("r_eff", "timestep", "sample", "interaction")
+
+r_effs$sample <- factor(r_effs$sample)
+r_effs <- as.data.frame(r_effs)
+r_effs$date <- as.Date(r_effs$timestep, origin = run_start_2)
+r_effs$interaction <- factor(r_effs$interaction)
 
 r_0s$interaction <- forcats::fct_rev(as.factor(r_0s$interaction))
 R0 <- ggplot(r_0s, aes(x = interaction, y = r_0, colour = interaction)) + 
   geom_jitter() + 
   theme_linedraw() + 
   scale_colour_manual(values=rev(cc))+
-  scale_y_continuous(breaks = seq(0,30,by=5))+
-  labs(x = "Cross-protection", y = "R0", title = "B") +
+  scale_y_continuous(breaks = seq(from=0,30,by=5), 
+                     limits = c(0,30))+
+  labs(x = "Cross-protection", y = "R0 (points), Reff (lines)", title = "B") +
   theme(legend.position = "none", 
         axis.text.x = element_text(size =12), 
         plot.margin = margin(t = 3,r=2,b= 0, l=2, unit = "pt")) + 
-  coord_flip()
+  coord_flip()  + 
+  geom_line(data = r_effs,aes(x = interaction, y = r_eff.r_eff, colour = interaction))
 
 R0
 
 # create the serology plot  
 sero$interaction <- as.factor(sero$interaction)
-#sero$ages <- forcats::fct_rev(sero$ages)
+sero$ages <- forcats::fct_rev(sero$ages)
 # sero[, source := 2]
 # sero[ages == "0-4" | ages == "5-9" | ages == "10-14" |
 #        ages == "15-19" | ages == "20-24", source := 1]
@@ -201,7 +210,7 @@ guides(color = guide_legend(override.aes = list(size = 1.5)))+
           legend.box = "horizontal",
           legend.position = c(0.8, 0.75),
           legend.key.height = unit(0.3, "cm")) +
-  geom_line(aes(x = ages, y = model, group = interaction(interaction,sample), colour = interaction))# +
+  geom_line(aes(x = ages, y = model, group = interaction(interaction,sample), colour = interaction)) 
   # geom_pointrange(data = sero_out, aes(x = age_group, y = mean,ymin = lower, ymax=upper, 
   #                                              group = source, shape = source),
   #                 position=position_dodge(width=c(0.4))) +
@@ -222,13 +231,6 @@ grid.arrange(FIT_PLOT,  R0,SERO_PLOT, layout_matrix = rbind(c(1,1,2,2,2),
 dev.off()
 
 
-# create the r_effective plot
-colnames(r_effs) <- c("r_eff", "timestep", "sample", "interaction")
-
-r_effs$sample <- factor(r_effs$sample)
-r_effs <- as.data.frame(r_effs)
-r_effs$date <- as.Date(r_effs$timestep, origin = run_start_2)
-r_effs$interaction <- factor(r_effs$interaction)
 
 tiff(here("figures","reffs.tiff"), height = 2000, width = 3200, res = 300)
 
@@ -240,7 +242,8 @@ ggplot(r_effs, aes(x=date, y = r_eff, group=sample, colour = interaction )) +
   labs(x = "Date", y = "R-effective", colour = "Cross-protection") + 
   theme_linedraw() + 
   scale_colour_manual(values=cc) + 
-  
+  scale_y_continuous(breaks = seq(0,5.5, by = 0.5), 
+                     limits = c(0,5.5))+
   theme(strip.text.y = element_text(angle = 0))
 
 dev.off()
