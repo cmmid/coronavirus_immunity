@@ -8,26 +8,25 @@
 
 ######## LOAD THE TRACES ######
 n_chains <- 16
-
 # load the traces
-load(here("fitting_seasonal/analysis","SEIR_PT_newlims5_5_2021-02-28.Rdata"))
+load(here("SEIR_PT_test_1_2021-06-07.Rdata"))
 trace_1_all <- total_trace
 trace_temp <- lapply(total_trace[1:n_chains], function(i) label_trace(i))
 timesteps <- 1:dim(total_trace[[1]])[1]
-trace_1 <- lapply(trace_temp, function(i) format_trace(i, thin=, burnin=12000,
+trace_1 <- lapply(trace_temp, function(i) format_trace(i, thin=1, burnin=50000,
                                                        keep_all = F))
 
-load(here("fitting_seasonal/analysis","SEIR_AWS_trace_2.Rdata"))
-trace_2_all <- trace_to_save
-trace_temp <- lapply(trace_to_save[1:n_chains], function(i) label_trace(i))
+load(here("SEIR_PT3_test_1_2021-06-18.Rdata"))
+trace_2_all <- total_trace
+trace_temp <- lapply(total_trace[1:n_chains], function(i) label_trace(i))
 timesteps <- 1:dim(trace_temp[[1]])[1]
-trace_2 <- lapply(trace_temp, function(i) format_trace(i, thin=, burnin=12000,
+trace_2 <- lapply(trace_temp, function(i) format_trace(i, thin=1, burnin=12000,
                                                        keep_all = F))
 
 ######### CONVERGENCE DIAGNOSTIC #######
 
-compare_mcmc<-mcmc.list(mcmc(trace_1[[1]][1:45000,2:9]), 
-                        mcmc(trace_2[[1]][1:45000,2:9]))
+compare_mcmc<-mcmc.list(mcmc(trace_1[[1]][1:48000,2:9]), 
+                        mcmc(trace_2[[1]][1:48000,2:9]))
 
 gelman_rubin <-gelman.diag(compare_mcmc)
 
@@ -39,7 +38,7 @@ trace_temps <- trace_1_all[[length(trace_1_all)-2]]
 temperatures <- 1/trace_temps[dim(trace_temps)[1],]
 timesteps <- c(1:dim(trace_1[[1]])[1])
 # thinning 0 here as already thnned above
-trace_edited <- lapply(trace_1, function(i) format_trace(i, thin=1, burnin=1, keep_all = T))
+trace_edited <- lapply(trace_1, function(i) format_trace(i, thin=100, burnin=1, keep_all = T))
 trace_edited <- Map(cbind, trace_1, temp = temperatures)
 
 trace_combined <- do.call(rbind.data.frame, trace_edited)
@@ -60,7 +59,7 @@ trace_to_sample <- rbind(trace_1[[1]][], trace_2[[1]])
 save(trace_to_sample, file = here("fitting_seasonal/analysis","trace_to_sample.Rdata"))
 
 ####### PLOT POSTERIOR ######
-trace_using <- data.table(trace_to_sample)
+trace_using <- as.data.table(trace_to_sample)
 
 trace_using[,step:= 1:dim(trace_using)[1]]
 ggtrace <- melt.data.table(trace_using, id.vars= c("step"))
@@ -101,7 +100,7 @@ SUB_POSTERIOR <-ggplot(ggtrace_sub) +
 
 ####### ATTACK RATES #######
 
-attack_rates <- attack_rate(100, trace_period = 1:nrow(trace_to_sample),
+attack_rates <- attack_rate(10, trace_period = 1:nrow(trace_to_sample),
                             trace_dt = trace_to_sample, model_type = "SEIR")[1:5,]
 attack_rates[variable == "Age1", variable := "Age 0-4"]
 attack_rates[variable == "Age2", variable := "Age 5-14"]
@@ -119,7 +118,7 @@ AR <- ggplot(attack_rates, aes(x = variable, y = V1)) +
 
 ######## RBINOM SAMPLING ######
 
-RBINOM <- plot_rbinom(samples = 100, 
+RBINOM <- plot_rbinom(samples = 20, 
                       trace_period = c(1:dim(trace_to_sample)[1]),
                       trace_dt = trace_to_sample,
                       model_type = "SEIR")
@@ -152,6 +151,21 @@ print("seasonal amplitude quantiles")
 print(quantile(trace_to_sample$seasonal_amplitude, probs = c(0.025, 0.5, 0.975)))
 print("seasonal timing quantiles")
 print(quantile(trace_to_sample$seasonal_timing, probs = c(0.025, 0.5, 0.975)))
+
+
+estimates <- data.frame(matrix(nrow = 8, ncol = 4))
+estimates[1,] <- c(quantile(trace_to_sample$waning_duration, probs = c(0.025, 0.5, 0.975)), "waning_duration")
+estimates[2,] <- c(quantile(trace_to_sample$seasonal_R0, probs = c(0.025, 0.5, 0.975)), "seasonal_R0")
+estimates[3,] <- c(quantile(trace_to_sample$reporting_rate_1, probs = c(0.025, 0.5, 0.975)), "reporting_rate_1")
+estimates[4,] <- c(quantile(trace_to_sample$reporting_rate_2, probs = c(0.025, 0.5, 0.975)), "reporting_rate_2")
+estimates[5,] <- c(quantile(trace_to_sample$reporting_rate_3, probs = c(0.025, 0.5, 0.975)), "reporting_rate_3")
+estimates[6,] <- c(quantile(trace_to_sample$reporting_rate_4, probs = c(0.025, 0.5, 0.975)), "reporting_rate_4")
+estimates[7,] <- c(quantile(trace_to_sample$seasonal_amplitude, probs = c(0.025, 0.5, 0.975)), "seasonal_amplitude")
+estimates[8,] <- c(quantile(trace_to_sample$seasonal_timing, probs = c(0.025, 0.5, 0.975)), "seasonal_timing")
+
+
+
+
 
 ####### EXPONENTIAL RATEES######
 print("median reinfection time (years)")

@@ -11,8 +11,9 @@ age_groups <- c(0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75)
 ###### load seasonal data and format ######
 
 # Load in the age_specific data
-all_data_ages <- data.table(read.csv(here("fitting_seasonal/fit","all_data_ages.csv"),
-                                     stringsAsFactors =F))
+all_data_ages <- data.table(read.csv("all_data_ages.csv"),
+                                     stringsAsFactors =F)
+all_data_ages$year_week <- as.character(all_data_ages$year_week)
 # melt
 all_data_ages_m <- melt.data.table(all_data_ages, id.vars=c("Year", "startweek",
                                                             "Age", "year_week", 
@@ -58,12 +59,11 @@ seasonal_15_20[ Age == "15-44 Y",variable := "OTHER_p15"]
 seasonal_15_20[ Age == "45-64 Y",variable := "OTHER_p45"]
 seasonal_15_20[ Age == "65 Y+",variable := "OTHER_p65"]
 
-to_exclude1 <- which(seasonal_15_20[,"year_week"] == "2017-04-03")
-to_exclude2 <- which(seasonal_19_20[,"year_week"] == "2017-04-03")
+seasonal_15_20[year_week == "2017-04-03", value := NA]
+seasonal_19_20[year_week == "2017-04-03", value := NA]
+
 seasonal_dates_15 <- unique(seasonal_15_20$year_week)
 
-seasonal_15_20[c(to_exclude1),"value"] <- NA
-seasonal_19_20[c(to_exclude2), "value"] <- NA
 
 
 
@@ -112,10 +112,10 @@ fixed_parameters <- c(
 
 # create the UK contact matrix
 # Load polymod data
-contacts_all <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_all.csv"), stringsAsFactors = F)))[,2:17]
-contacts_hh_num <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_hh.csv"), stringsAsFactors = F)))[,2:17]
-contacts_school_num  <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_school.csv"), stringsAsFactors = F)))[,2:17]
-contacts_other_num  <- unname(as.matrix(read.csv2(here("fitting_seasonal/fit","contacts_other.csv"), stringsAsFactors = F)))[,2:17]
+contacts_all <- unname(as.matrix(read.csv2("contacts_all.csv"), stringsAsFactors = F))[,2:17]
+contacts_hh_num <- unname(as.matrix(read.csv2("contacts_hh.csv"), stringsAsFactors = F))[,2:17]
+contacts_school_num  <- unname(as.matrix(read.csv2("contacts_school.csv"), stringsAsFactors = F))[,2:17]
+contacts_other_num  <- unname(as.matrix(read.csv2("contacts_other.csv"), stringsAsFactors = F))[,2:17]
 
 subset_contacts = contacts_school_num + contacts_other_num + contacts_hh_num
 

@@ -8,7 +8,7 @@
 ########## Load in params and functions and initialise paralisation
 
 # Specify the characteristics of the cluster
-cores_to_use <- detectCores()
+cores_to_use <- 3
 cl <- parallel::makeCluster(cores_to_use, setup_strategy = "sequential")
 registerDoParallel(cl)
 array_num <- 1
@@ -21,7 +21,7 @@ lower_bounds <- c(waning_day = 100,
                     seasonal_reported_3 = -Inf, 
                     seasonal_reported_5 = -Inf, 
                     seasonal_amplitude = 0, 
-                    phi = -364)
+                    phi = -365.25)
 
 upper_bounds <-  c(waning_day = 3000, 
                    seasonal_R0 = 8.5,
@@ -30,16 +30,16 @@ upper_bounds <-  c(waning_day = 3000,
                    seasonal_reported_3 = Inf, 
                    seasonal_reported_5 = Inf, 
                    seasonal_amplitude = 2.5, 
-                   phi = 364)
+                   phi = 365.25)
 
-init_theta <- c(waning_day = 200,
-                seasonal_R0 = 2,
-                seasonal_reported_1 = -8,
-                seasonal_reported_2 = -8,
-                seasonal_reported_3 = -8,
-                seasonal_reported_5 = -8,
-                seasonal_amplitude = 1.1,
-                phi = 20)
+init_theta <- c(waning_day = 1575.332,
+                seasonal_R0 = 3.594329,
+                seasonal_reported_1 = -6.962415,
+                seasonal_reported_2 = -8.880683,
+                seasonal_reported_3 = -9.212475,
+                seasonal_reported_5 = -7.931372,
+                seasonal_amplitude = 0.4040654,
+                phi = -38.67363)
 
 
 names(init_theta) <- c("waning_day", "seasonal_R0", "seasonal_reported_1", 
@@ -96,11 +96,11 @@ clusterEvalQ(cl, library("RcppSims"))
 time_start <- Sys.time()
 name <- "SEIR_PT_test"
 
-total_trace <- trace_wrapper(length_run = 10, # length of total run
-                             each_run = 10, # lenght of each subset
+total_trace <- trace_wrapper(length_run = 1, # length of total run
+                             each_run = 1, # lenght of each subset
                              n_chains = n_chains, # number of chians
                              init_theta = init_theta, # initial parameter guesses
-                             indep = 5, # number steps to run chains independetly
+                             indep = 1, # number steps to run chains independetly
                              covmat = covmat, # covariance matrix
                              adapt_rate = 0.55, # temperature adaption cooling
                              adaption_starter = 1000000, # time point to start temp adapt

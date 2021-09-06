@@ -11,13 +11,15 @@ run_model_project <- function(parameters, init_state_2020){
   #times over which to run the model
   times_20 <- c(1:length_to_run_3)
   # run the model
+  
   outall <- as.data.table(ode(
     y = unlist(init_state_2020),
     t = times_20,
-    func = SEIR_2virus_cons_season,
+    initfunc = "initmod",
+    dllname = "SEIR_comp_lockdown",
+    func = "derivatives_lockdown",
     parms = parameters,
     method = "rk4"))
-  
   return(outall)
   
 }

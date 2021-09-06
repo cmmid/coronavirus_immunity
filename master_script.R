@@ -25,15 +25,13 @@ library(viridis)
 
 ## This is the package that contains the actual model code. It's in a package 
 # for convenience when running on a cluster.
-install.packages("RcppCoronaImmunitty_0.1.0.tar.gz",
-               repos = NULL, type = "source")
-library(RcppCoronaImmunitty)
-# source("compiler_function.R")
-# compileModel("SEIR_compilation.cpp", "build")
-# dyn.load("build/SEIR_compilation.so")
+
+source("AWS/compiler_function.R")
+compileModel("AWS/SEIR_comp.cpp", "AWS/build")
+dyn.load("AWS/build/SEIR_comp.so")
 
 # load in the functions and parameters for fitting
-source(here("fitting_seasonal/fit", "BM_PT_functions.R"))
+source(here("AWS", "BM_PT_functions.R"))
 source(here("fitting_seasonal/fit", "BM_PT.R"))
 source(here("fitting_seasonal/fit", "BM_PT_parameters.R"))
 
@@ -42,6 +40,7 @@ source(here("fitting_seasonal/fit", "BM_PT_parameters.R"))
 #run the fit (from the below script. can alter preferences etc.)
 #Note: this takes a long time! The end traces are already saved so you can
 #carry on to the analysis if wanted
+
 file.edit(here("fitting_seasonal/fit", "BM_PT_run.R"))
 
 ##### ANALYSE THE FIT ######
@@ -55,9 +54,9 @@ source(here("fitting_seasonal/analysis", "analyse_traces.R"))
 
 ######## COVID SIMULATIONS ######
 
-# compileModel("SEIR_lockdownn_compilation.cpp", "build")
-# dyn.load("build/SEIR_lockdownn_compilation.so")
-
+compileModel(here::here("simulating_covid","SEIR_comp_lockdown.cpp"), "simulating_covid/build")
+dyn.load("simulating_covid/build/SEIR_comp_lockdown.so")
+source(here("serology_data.R"))
 source(here("simulating_covid", "covid_sims_data.R"))
 source(here("simulating_covid", "covid_sims_functions.R"))
 

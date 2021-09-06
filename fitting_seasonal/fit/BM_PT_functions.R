@@ -121,7 +121,8 @@ create_parameters <- function(parameter_guesses){
                           rep_f_2,
                           rep_f_5), 
     start_dying_off = 14, 
-    child_extra_reduc = 1
+    child_extra_reduc = 1,
+    N_tot = sum(pop_numbers)
   )
 
   parameters <- c(parameters,
@@ -167,23 +168,14 @@ run_model_seasonal <- function(parameters, model_type){
   # times to run model
   times <- c(1:length_to_run)
   # run the model
-  if(model_type == "SEIR"){
-    func_to_use <- SEIR_2virus_cons
-  } else if(model_type =="SEIPRR") {
-    func_to_use <- SEIPRR_2virus_interact_cons
-  } else if(model_type == "SEIRR"){
-    func_to_use <- SEIRR_2virus_cons
-  } else {
-    message("Invalid model type! Stopped.")
-    stop()
-  }
   outall <- as.data.table(ode(
     y = init_state,
     t = times,
-    func = func_to_use,
+    initfunc = "initmod",
+    dllname = "SEIR_comp",
+    func = "derivatives",
     parms = parameters,
     method = "rk4"))
-  
   
   return(outall)
   
@@ -381,7 +373,7 @@ summary_stats_reported_seasonal <- function(outall, type) {
   outall[, OTHER_70 := Other_reported15 - shift(Other_reported15, 1L, type = "lag")]
   outall[, OTHER_75 := Other_reported16 - shift(Other_reported16, 1L, type = "lag")]
   
-  outall <- outall[-1,]
+  outall[1, (colnames(outall)) := 0]
   
   return(outall)
 }
@@ -476,20 +468,42 @@ calc_lik_seasonal_ages_binomial <- function(reportin_2020_daily, parameters,
   to_match[real_data, on = c("year_week", "variable"), true_value:= i.value ]
   
   
-  for( stepper in 1:dim(to_match)[1]){
-    if(to_match[stepper,"variable"] == "OTHER_p0"){age_set = 1
-    } else if(to_match[stepper,"variable"] == "OTHER_p5"){age_set = 2
-    } else if(to_match[stepper,"variable"] == "OTHER_p15"){age_set = 3
-    } else if(to_match[stepper,"variable"] == "OTHER_p45"){age_set = 4
-    } else if(to_match[stepper,"variable"] == "OTHER_p65"){age_set = 5}
-    # work out quantile intervals
-    
-    to_match[stepper,"likelihood"] <- dbinom(x=as.numeric(to_match[stepper, "true_value"]),
-                                             size = round(as.numeric(to_match[stepper,"V1"])),
-                                             prob = parameters$seasonal_reported[age_set]
-                                             , log=T)
-    
-  }
+  to_match[variable == "OTHER_p0", likelihood := dbinom(x = true_value, 
+                                size = round(V1), 
+                                prob = parameters$seasonal_reported[1], 
+                                log = T)]
+  to_match[variable == "OTHER_p5", likelihood := dbinom(x = true_value, 
+                                                      size = round(V1), 
+                                                      prob = parameters$seasonal_reported[2], 
+                                                      log = T)]
+  to_match[variable == "OTHER_p15", likelihood := dbinom(x = true_value, 
+                                                      size = round(V1), 
+                                                      prob = parameters$seasonal_reported[3], 
+                                                      log = T)]
+  to_match[variable == "OTHER_p45", likelihood := dbinom(x = true_value, 
+                                                      size = round(V1), 
+                                                      prob = parameters$seasonal_reported[4], 
+                                                      log = T)]
+  to_match[variable == "OTHER_p65", likelihood := dbinom(x = true_value, 
+                                                      size = round(V1), 
+                                                      prob = parameters$seasonal_reported[5], 
+                                                      log = T)]
+
+  
+  # for( stepper in 1:dim(to_match)[1]){
+  #   if(to_match[stepper,"variable"] == "OTHER_p0"){age_set = 1
+  #   } else if(to_match[stepper,"variable"] == "OTHER_p5"){age_set = 2
+  #   } else if(to_match[stepper,"variable"] == "OTHER_p15"){age_set = 3
+  #   } else if(to_match[stepper,"variable"] == "OTHER_p45"){age_set = 4
+  #   } else if(to_match[stepper,"variable"] == "OTHER_p65"){age_set = 5}
+  #   # work out quantile intervals
+  #   
+  #   to_match[stepper,"likelihood"] <- dbinom(x=as.numeric(to_match[stepper, "true_value"]),
+  #                                            size = round(as.numeric(to_match[stepper,"V1"])),
+  #                                            prob = parameters$seasonal_reported[age_set]
+  #                                            , log=T)
+  #   
+  # }
 
   # weight the off_seasons by half
   lik_summary <- to_match[, sum(likelihood, na.rm = T)]

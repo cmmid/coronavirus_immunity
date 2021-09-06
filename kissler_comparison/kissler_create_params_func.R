@@ -1,5 +1,7 @@
 # create parameters extra function
 create_parameters <- function(parameter_guesses){
+  print(parameter_guesses)
+  
   num_groups <- length(pop_params_base[["age_groups"]])
   
   rep_f_1 <- exp(as.numeric(parameter_guesses["seasonal_reported_1"]))/
@@ -50,7 +52,8 @@ create_parameters <- function(parameter_guesses){
                           rep_f_2,
                           rep_f_5), 
     start_dying_off = 14, 
-    child_extra_reduc = 1
+    child_extra_reduc = 1,
+    N_tot = sum(pop_numbers)
   )
   
   parameters <- c(parameters,

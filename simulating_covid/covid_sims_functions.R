@@ -18,23 +18,24 @@ run_model_on_sample <- function(test_params, parameters_2020,
   # calculate the deaths from model otuput
   model_deaths <- calculate_deaths(model_output = output_2020,
                                    parameters = parameters)
-# browser()
+
   # calculate the serology data
   serology <- calc_youngest_ages(output_2020, parameters)
  
-  # calculate Reffective over time
+  #calculate Reffective over time
   r_effective <- calc_Reff_time(parameters = parameters,
-                                outall = output_2020, 
+                                outall = output_2020,
                                 timespan = c(1,dim(output_2020)[1]))
-  r_effective <- data.table(r_eff = r_effective, 
+
+  r_effective <- data.table(r_eff = r_effective,
                             timestep = c(1:dim(output_2020)[1]))
 
   #calculate the R0
   r_0 <- calc_R0_SEIR(parameters$beta_covid_0, parameters, timestep=1)
   # return the modelled outputs as a list
-  return(list(model_deaths= model_deaths[,c("date", "total")], 
-              r_eff = r_effective, 
-              r_0 = r_0, 
+  return(list(model_deaths= model_deaths[,c("date", "total")],
+              r_eff = r_effective,
+              r_0 = r_0,
               serology = serology))
 }
 
@@ -122,11 +123,21 @@ run_model_2020 <- function(parameters, init_state_2020){
   # run the model
   parameters$amplitude_covid <- parameters$beta_covid_0 * (parameters$amplitude/
                                                            parameters$beta_other)
+  
 
-    outall <- as.data.table(ode(
+    # outall <- as.data.table(ode(
+    # y = unlist(init_state_2020),
+    # t = times_20,
+    # func = SEIR_2virus_cons_season, 
+    # parms = parameters,
+    # method = "rk4"))
+
+  outall <- as.data.table(ode(
     y = unlist(init_state_2020),
     t = times_20,
-    func = SEIR_2virus_cons_season, 
+    initfunc = "initmod",
+    dllname = "SEIR_comp_lockdown",
+    func = "derivatives_lockdown",
     parms = parameters,
     method = "rk4"))
   
@@ -313,13 +324,14 @@ calc_R0_SEIR <- function(beta_input, parameters, timestep){
     }
   }
   #Inverse 
-  
+
+  if(!any(tryCatch(ginv(Transition),error = function(c) "error") =="error")){
   Transition_inverse<- ginv(Transition)
   NGM <- -Transmission%*%Transition_inverse
   
   Eigen<- unlist((eigen(NGM)[1]))
   R0 <-  max(Eigen)
-  
+  } else {R0 <- NA}
   return(R0)
 }  
 
@@ -362,6 +374,7 @@ calc_Reff_time <- function(parameters, outall, timespan, thinning = 1, excl_sus 
   # for each timestep
   for(timestep in seq(from = timespan[1], to = timespan[2], by=thinning)){
     #calculate the R0
+
     NGM_to_use <- calc_NGM_change(outall = outall, 
                                  parameters = parameters,
                                   timestep=timestep)
@@ -373,15 +386,21 @@ calc_Reff_time <- function(parameters, outall, timespan, thinning = 1, excl_sus 
       
       NGM_to_use <- sweep(NGM_to_use, MARGIN = 1, vector_sus,"*")
     }
-    
+
+    if(!any(tryCatch(eigen(NGM_to_use),error = function(c) "error") =="error")){
     # eigen values
     Eigen<- unlist((eigen(NGM_to_use)[1]))
     # max eigenvalue
-    R0 <-  max(Eigen)
+    if(tryCatch(max(Eigen),error = function(c) "error") =="error"){
+      R0 <- NA
+      print("it happened!")
+      break
+    } else {
+    R0 <-  max(Eigen) }}
     #store!
     R0_store <- c(R0_store, R0)
-    
   }
+  
   return(R0_store)}
 
 
@@ -472,6 +491,7 @@ calc_NGM_change <- function(outall,parameters,timestep){
   #Inverse 
   Transition_inverse<- ginv(Transition)
   NGM <- -Transmission%*%Transition_inverse
+  
   return(NGM)
 }
 

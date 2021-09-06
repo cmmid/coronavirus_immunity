@@ -3,7 +3,7 @@
 # Author: Naomi R Waterlow
 # Date: 2021-04-08
 ################################################################################
-set.seed(2016)
+set.seed(19930625)
 ##### SETUP #######
 run_start_2 <- as.Date("2020-01-01") # When to start the smulation
 run_end <- as.Date("2020-06-01") # When to end teh simulation
@@ -36,11 +36,13 @@ ll_values <- data.table()
 
 sig_list <- c(0,0.2,0.4,0.6,0.8,1)
 
-n_samples <- 2
+n_samples <- 50
 samples_to_take <- sample(x=1:dim(trace_to_sample)[1],size=n_samples,replace = T)
-
-for(i in 1:n_samples){
+i <- 1
+while(i <= n_samples){
+ 
   for(sig in sig_list){
+    
     # need to run a loop or an apply over the number of samples required.
     # take sample of seasonal parameters
     sample_num <- samples_to_take[i]
@@ -53,11 +55,12 @@ for(i in 1:n_samples){
     # loop here over different interaction parameters
     interaction_param <- sig
     
-    transmission_fit <- optim(par = c(parameters_2020$beta_other,4), # use as the transmission parameter (convert to R0 after) 
+    transmission_fit <- optim(par = c(parameters_2020$beta_other,1), # use as the transmission parameter (convert to R0 after) 
                               fn = optimise_ll_deaths, 
-                              method = "L-BFGS-B",#"Brent", #
-                              lower = c(0.01,0.1), 
-                              upper = c(0.6,10),
+                              method = "L-BFGS-B",
+                              lower = c(0.001,0.1), 
+                              upper = c(0.3,4.5),
+                              control=list(parscale=c(0.0001,0.1)),
                               parameters_2020 = parameters_2020, 
                               sigma = interaction_param,
                               init_state_2020 = seasonal_out["init_state_2020"])
@@ -70,8 +73,16 @@ for(i in 1:n_samples){
                                        parameters_2020 = parameters_2020,
                                        sigma = interaction_param, 
                                        init_state_2020 = seasonal_out["init_state_2020"])
-    
-   
+
+    if(any(is.na(output_list$r_0)) |
+           any(is.na(output_list$r_eff)) |
+               any(is.nan(output_list$model_deaths4total))
+           ){
+      rerun_new_sample <- TRUE
+      samples_to_take[i] <- samples_to_take[i] +1
+      print("about to jump")
+      break}
+    rerun_new_sample <- FALSE
     # store the death output with the output from other samples
     temp_ll_values <- data.frame(transmission_fit$value, sample_num, interaction_param)
     
@@ -112,13 +123,23 @@ for(i in 1:n_samples){
     introductions_temp$interaction <- interaction_param
     
     introductions <- rbind(introductions,introductions_temp)
-    
+    print(sig)
   }
+    if(rerun_new_sample == F){
+      i <- i + 1
+    }
   print(i)
 }
 
 #colours for all
 cc <- scales::seq_gradient_pal("darkmagenta",  "darkorange", "Lab")(seq(0,1,length.out=6))
+saveRDS(transmission, file ="transmission.RDS")
+saveRDS(introductions, file ="introductions.RDS")
+saveRDS(sero, file ="sero.RDS")
+saveRDS(r_effs, file ="r_effs.RDS")
+saveRDS(r_0s, file ="r_0s.RDS")
+saveRDS(model_deaths, file ="model_deaths.RDS")
+saveRDS(samples_to_take, file ="samples_to_take.RDS")
 
 
 # create the fit plot
@@ -131,16 +152,16 @@ model_deaths$interaction <- plyr::revalue(model_deaths$interaction, c("0" = "Cro
                                     "0.8" = "Cross-protection: 0.8",
                                     "1" = "Cross-protection: 1"))
 
-FIT_PLOT <- ggplot() + 
+  FIT_PLOT <- ggplot() + 
   geom_point(data=model_deaths, aes(x = date, y = total, colour = interaction )) +
   facet_wrap(interaction~., ncol=1)+
 scale_colour_manual(values=cc) +
    geom_point(data = deaths_covid, aes(x = date, y = actual_deaths), size = 1) + 
   geom_vline(xintercept = covid_date, colour = "red" ) + 
-  labs(x = "Date", title = "A", y = "Number of deaths", colour = "strength of protection") + 
+  labs(x = "Date", title = "", y = "Number of deaths", colour = "strength of protection") + 
    lims(x = c(as.Date("2020-02-01"), as.Date("2020-05-31")))  + 
    theme_linedraw() +
-   theme(legend.position = "none", strip.text.y = element_text(angle = 0), 
+   theme(strip.text.y = element_text(angle = 0), 
          strip.background = element_rect(colour="white", fill="white"),
          strip.text = element_text(colour = 'black',hjust = 0))
  
@@ -174,12 +195,12 @@ R0 <- ggplot(r_0s, aes(x = interaction, y = r_0, colour = interaction)) +
   scale_colour_manual(values=rev(cc))+
   scale_y_continuous(breaks = seq(from=0,30,by=5), 
                      limits = c(0,30))+
-  labs(x = "Cross-protection", y = "R0 (points), Reff (lines)", title = "B") +
+  labs(x = "Cross-protection", y = "R0 (points), Reff (lines)", title = "A") +
   theme(legend.position = "none", 
         axis.text.x = element_text(size =12), 
         plot.margin = margin(t = 3,r=2,b= 0, l=2, unit = "pt")) + 
   coord_flip()  + 
-  geom_line(data = r_effs,aes(x = interaction, y = r_eff.r_eff, colour = interaction))
+  geom_line(data = r_effs,aes(x = interaction, y = r_eff, colour = interaction))
 
 R0
 
@@ -191,13 +212,15 @@ sero$ages <- forcats::fct_rev(sero$ages)
 #        ages == "15-19" | ages == "20-24", source := 1]
 # sero$source <- as.factor(sero$source)
 # dup_point <- data.frame(x = "20-24", y = 0.102)
+#sero$model <- sero$model * unlist(sero[5,"model"])
+
 SERO_PLOT <- ggplot(sero, aes(x= ages)) + 
   # geom_errorbar(aes(y=data, ymin=lower, ymax=upper)) +
   scale_colour_manual(values=cc) +
-  labs(y = "Proportion positive", title = "C", x = "Age group", colour = "Cross-protection",
+  labs(y = "Proportion positive", title = "B", x = "Age group", colour = "Cross-protection",
        shape = "Source")+ 
   theme_linedraw() + 
-  lims(y = c(0,0.2)) +
+#  lims(y = c(0,0.2)) +
   geom_point(aes(y=model, colour = interaction, group = sample), alpha=0.8) + 
   theme(legend.position = "bottom") + 
   guides(shape = guide_legend(override.aes = list(size = 0.5)))+
@@ -210,7 +233,9 @@ guides(color = guide_legend(override.aes = list(size = 1.5)))+
           legend.box = "horizontal",
           legend.position = c(0.8, 0.75),
           legend.key.height = unit(0.3, "cm")) +
-  geom_line(aes(x = ages, y = model, group = interaction(interaction,sample), colour = interaction)) 
+  geom_line(aes(x = ages, y = model, group = interaction(interaction,sample), colour = interaction))  + 
+  geom_pointrange(data = sero_data, aes(x = age_group, y = data, ymin= lower, ymax = upper, shape = type), 
+                  position = position_dodge(width=0.3))
   # geom_pointrange(data = sero_out, aes(x = age_group, y = mean,ymin = lower, ymax=upper, 
   #                                              group = source, shape = source),
   #                 position=position_dodge(width=c(0.4))) +
@@ -221,16 +246,20 @@ guides(color = guide_legend(override.aes = list(size = 1.5)))+
 # plot the combined plots
 tiff(here("figures","covid_sims.tiff"), height = 2000, width = 3200, res = 300)
 
-grid.arrange(FIT_PLOT,  R0,SERO_PLOT, layout_matrix = rbind(c(1,1,2,2,2), 
-                                                            c(1,1,2,2,2),
-                                                            c(1,1,2,2,2),
-                                                            c(1,1,3,3,3), 
-                                                            c(1,1,3,3,3), 
-                                                            c(1,1,3,3,3),
-                                                            c(1,1,3,3,3)))
+grid.arrange( R0,SERO_PLOT, layout_matrix = rbind(c(2,2,2), 
+                                                            c(2,2,2),
+                                                            c(2,2,2),
+                                                            c(3,3,3), 
+                                                            c(3,3,3), 
+                                                            c(3,3,3),
+                                                            c(3,3,3)))
 dev.off()
 
+tiff(here("figures","fit_to_deaths.tiff"), height = 2000, width = 3000, res = 300)
 
+FIT_PLOT
+
+dev.off()
 
 tiff(here("figures","reffs.tiff"), height = 2000, width = 3200, res = 300)
 

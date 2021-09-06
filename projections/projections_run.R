@@ -16,11 +16,12 @@ year_times <- seq(from = 41, by = 365, length.out = 10)
 set.seed(985)
 storage <- data.frame()
 storage2 <- data.frame()
+storage3 <- data.frame()
 ######## first set #######
-
+n_samples <- 5
 seasonal_factor_covid <- "yes" # "yes" or "no
 # 1. get the sample 
-for(i in 1:10#n_samples
+for(i in 1:n_samples
 ){
 projections_both <- data.frame()
 
@@ -77,8 +78,8 @@ for(sigma_otherway in c(0,"same")){
     }
 
     if(sigma_otherway == "same"){
-      projections_all$type = "Bi-directional Cross-protection"
-    } else if(sigma_otherway == "0"){projections_all$type ="One-way Cross-protection"}
+      projections_all$type = "B: Bi-directional Cross-protection"
+    } else if(sigma_otherway == "0"){projections_all$type ="A: One-way Cross-protection"}
     
     projections_both <- rbind(projections_both, projections_all)
   }
@@ -107,7 +108,7 @@ cc_two <- c("navyblue","orangered2")
 comp_coef <- 5
 projections_both_m[date >= as.Date("2020-08-01"), scale := 2]
 projections_both_m[date < as.Date("2020-08-01"), scale := 1]
-
+storage3 <- rbind(storage3, projections_both_m)
 
 PROJ_all <- ggplot(projections_both_m[scale ==1], aes(x = date, y=value,
                                                    colour = variable,
@@ -198,3 +199,33 @@ BI_PERC <- ggplot(storage_m, aes(x = variable, y = value, fill = variable)) +
   geom_bar(position = "dodge", stat="identity") + 
   facet_grid(interaction~time_taken) + labs(y = "PERCENT OF CASES", 
                                             title = "BIDIRECTIONAL INTERACTION")
+
+
+
+
+storage3$sample <- as.factor(storage3$sample)
+storage3$type <- factor(storage3$type, levels = c("A: One-way Cross-protection", 
+                                                  "B: Bi-directional Cross-protection"))
+PROJECTIONS_5 <- ggplot(storage3[scale ==1], aes(x = date, y = value, colour = variable, linetype=sample)) + 
+  facet_grid(inter~type) + 
+  geom_line() + 
+  geom_line(data = storage3[scale ==2],aes(x = date, y=value*comp_coef,
+                                                     colour = variable,
+                                                     group=interaction(sample, inter, variable))) + 
+  facet_grid(inter~type, switch= "y",) +
+  theme_linedraw() +
+  scale_y_continuous( name = "Infections (pre 2020-08-01)", 
+                      sec.axis = sec_axis(~.*comp_coef, name = "Infections (post 2020-08-01)")) +
+  geom_vline(xintercept =as.Date("2020-08-01"), linetype="twodash" ) +
+  scale_colour_manual(values=cc_two) +
+  theme( strip.text.y.left = element_blank(),
+         strip.background = element_rect(colour="white", fill="white"),
+         strip.text = element_text(colour = 'black',hjust = 0),
+         strip.placement = "outside",
+         legend.position = "bottom")+
+  scale_x_date(date_breaks = "2 year", date_labels = "%Y") +
+  labs(colour = "Virus")
+
+tiff(here("figures", paste0("Combined_projections.tiff")), height = 2000, width = 3200, res = 300)
+grid.arrange(LABELS, PROJECTIONS_5, ncol=2, widths = c(1,6))
+dev.off()

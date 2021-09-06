@@ -7,10 +7,10 @@
 
 # values to rest
 R0_trials <- seq(1,10, by = 0.2)
-waning_trials <- seq(0,10, by = 0.2)*364
+waning_trials <- seq(0,10, by = 0.2)*365.25
 store_ll <- data.frame()
 # choose sample from trace
-sample_num <- samples_to_take[i] #in paper is sample 74904
+sample_num <- 74904#samples_to_take[i] #in paper is sample 74904
 seasonal_sample <- trace_to_sample[sample_num,]
 
 # loop pver different parameters
@@ -39,7 +39,7 @@ for(required_r0 in R0_trials){
 colnames(store_ll) <- c('r0', 'waning', 'll')
 # choose zooming scales
 zoom1 <- c(4,7,1800,3500)
-zoom2 <- c(5.2,6,2300,2900)
+zoom2 <- c(5.6,6.4,2500,3100)
 
 #make the plots
  A <- ggplot(store_ll, aes(x = r0, y = waning, fill = ll)) + 

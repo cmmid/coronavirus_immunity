@@ -1,2 +1,8 @@
 storage
 .DS_Store
+temp
+figures
+Figures_perprint
+SEIR*
+reference_models
+AWS

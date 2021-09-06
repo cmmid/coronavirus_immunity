@@ -64,7 +64,7 @@ mcmcmc_fn <- function(init_theta, MaxTime = 1e3,
   for(s in 1:(MaxTime / indep)){
     # print(paste0("s is ", s))
     # Evolve chains independently for "indep" time steps
-    out <- lapply( 1:n_chains,
+    out <- parLapply(cl, 1:n_chains,
                    function(i){
                      # matrix to store output
                      out <- matrix(NA, ncol = length(theta_names) + 4,
@@ -165,9 +165,8 @@ mcmcmc_fn <- function(init_theta, MaxTime = 1e3,
         pick <- sample(1:(n_chains-1), 1)
         i <- pick; j <- pick+1 # for convience
         # calculate the swap potential
-
         if(is.finite(likelihood[[i]]) & is.finite(likelihood[[j]])){
-          R <- exp((likelihood[[i]] - likelihood[[j]]) /
+          R <- exp((likelihood[[i]] - likelihood[[j]]) *
                      ( temp_func(Temperatures , j) - temp_func(Temperatures , i)))
         } else { R = -Inf}
         
